@@ -63,6 +63,7 @@ compile() { # $1=file  -> prints script on stdout
 
 cmd="${1:-}"; file="${2:-}"
 [[ -z "$cmd" || -z "$file" ]] && usage
+[[ ! -f "$file" ]] && { echo "ei: no such file: $file" >&2; exit 1; }
 
 case "$cmd" in
     compile)
