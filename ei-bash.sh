@@ -24,6 +24,7 @@ EI_PENDING="${EI_PENDING:-/tmp/ei-pending.$$}"
 EI_LOG="${EI_LOG:-/tmp/ei-session.$$.log}"
 EI_LOG_BYTES="${EI_LOG_BYTES:-3000}"   # how much recent output the model sees
 EI_HIST_LINES="${EI_HIST_LINES:-20}"   # how many history lines the model sees
+EI_GUARD="${EI_GUARD:-1}"              # 1 = confirm irreversible commands, 0 = off
 
 # Capture all session output into EI_LOG so the model can see what you saw.
 if [[ $- == *i* && -z "$EI_CAPTURE_ON" ]]; then
@@ -76,12 +77,21 @@ command_not_found_handle() {
     return 0
 }
 
+# Patterns that can destroy data or the system. Extend as needed.
+_ei_dangerous() {
+    grep -qE '(rm .*(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)|rm -(r|f)?\s|mkfs|dd .*of=/dev|> */dev/sd|chmod +-R|chown +-R|shred|truncate|git +(reset +--hard|clean +-|push +--force)|drop +(table|database)|:\(\)\{|sudo )' <<<"$1"
+}
+
 _ei_run_pending() {
     if [[ -s "$EI_PENDING" ]]; then
-        local code
+        local code reply
         code=$(<"$EI_PENDING")
         : > "$EI_PENDING"
         printf '\033[2m= %s\033[0m\n' "${code//$'\n'/$'\n'= }" >&2
+        if [[ "$EI_GUARD" == 1 ]] && _ei_dangerous "$code"; then
+            read -r -p 'ei: this looks irreversible. run it? [y/N] ' reply
+            [[ "$reply" == y || "$reply" == Y ]] || { echo 'ei: skipped' >&2; return; }
+        fi
         history -s "$code"
         eval "$code"
     fi
