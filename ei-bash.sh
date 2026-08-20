@@ -23,7 +23,7 @@ EI_MODEL="${EI_MODEL:-qwen/qwen3.8-27b}"
 EI_PENDING="${EI_PENDING:-/tmp/ei-pending.$$}"
 EI_LOG="${EI_LOG:-/tmp/ei-session.$$.log}"
 EI_LOG_BYTES="${EI_LOG_BYTES:-3000}"   # how much recent output the model sees
-EI_HIST_LINES="${EI_HIST_LINES:-200}"  # how many history lines the model sees
+EI_HIST_LINES="${EI_HIST_LINES:-25}"   # how many history lines the model sees
 EI_GUARD="${EI_GUARD:-1}"              # 1 = confirm irreversible commands, 0 = off
 
 # Capture all session output into EI_LOG so the model can see what you saw.
