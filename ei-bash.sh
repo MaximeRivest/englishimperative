@@ -21,10 +21,38 @@ EI_URL="${EI_URL:-http://192.168.2.24:8000/v1/chat/completions}"
 EI_KEY="${EI_KEY:-inktype-local}"
 EI_MODEL="${EI_MODEL:-qwen/qwen3.8-27b}"
 EI_PENDING="${EI_PENDING:-/tmp/ei-pending.$$}"
+EI_LOG="${EI_LOG:-/tmp/ei-session.$$.log}"
+EI_LOG_BYTES="${EI_LOG_BYTES:-3000}"   # how much recent output the model sees
+EI_HIST_LINES="${EI_HIST_LINES:-20}"   # how many history lines the model sees
+
+# Capture all session output into EI_LOG so the model can see what you saw.
+if [[ $- == *i* && -z "$EI_CAPTURE_ON" ]]; then
+    EI_CAPTURE_ON=1
+    : > "$EI_LOG"
+    exec > >(tee -a "$EI_LOG") 2> >(tee -a "$EI_LOG" >&2)
+fi
+
+_ei_context() {
+    echo "Current directory: $PWD"
+    echo
+    echo "Files here (truncated):"
+    ls -1 2>/dev/null | head -40
+    echo
+    echo "Recent shell history:"
+    history "$EI_HIST_LINES" 2>/dev/null | sed 's/^ *[0-9]* *//'
+    if [[ -s "$EI_LOG" ]]; then
+        echo
+        echo "Recent terminal output (may be what the user refers to):"
+        tail -c "$EI_LOG_BYTES" "$EI_LOG"
+    fi
+}
+
 
 _ei_translate() {
     local intent="$1"
-    local sys="You are a strict English-to-bash interpreter inside a live interactive bash session on Linux. Translate the user's statement into bash code. Output ONLY the code: no markdown fences, no comments, no explanation. The code runs directly with eval in the user's shell. Current directory: $PWD"
+    local sys="You are a strict English-to-bash interpreter inside a live interactive bash session on Linux. Translate the user's statement into bash code. Output ONLY the code: no markdown fences, no comments, no explanation. The code runs directly with eval in the user's shell. The user may refer to the recent history or terminal output below.
+
+$(_ei_context)"
     jq -n --arg model "$EI_MODEL" --arg sys "$sys" --arg user "$intent" \
         '{model:$model, temperature:0, max_tokens:500,
           messages:[{role:"system",content:$sys},{role:"user",content:$user}]}' \
