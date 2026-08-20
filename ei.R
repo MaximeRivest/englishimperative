@@ -45,7 +45,7 @@
     info <- vapply(vars, function(v)
       paste0(v, " = ", class(get(v, envir = globalenv()))[1]), "")
     parts <- c(parts, "Variables in the environment:",
-               paste(head(info, 60), collapse = ", "), "")
+               paste(utils::head(info, 60), collapse = ", "), "")
   }
   parts <- c(parts, paste("Current directory:", getwd()))
   paste(parts, collapse = "\n")
@@ -81,9 +81,9 @@
   for (ex in exprs) {
     res <- withVisible(eval(ex, envir = globalenv()))
     if (res$visible) {
-      out <- capture.output(print(res$value))
+      out <- utils::capture.output(print(res$value))
       cat(out, sep = "\n")
-      .ei$log <<- c(.ei$log, head(out, 10))
+      .ei$log <<- c(.ei$log, utils::head(out, 10))
     }
   }
 }
