@@ -51,7 +51,7 @@ _ei_context() {
 
 _ei_translate() {
     local intent="$1"
-    local sys="You are a strict English-to-bash interpreter inside a live interactive bash session on Linux. Translate the user's statement into bash code. Output ONLY the code: no markdown fences, no comments, no explanation. The code runs directly with eval in the user's shell. The user may refer to the recent history or terminal output below.
+    local sys="You are a strict English-to-bash interpreter inside a live interactive bash session on Linux. Translate the user's statement into bash code. Output ONLY the code: no markdown fences, no comments, no explanation. The code runs directly with eval in the user's shell. The user may refer to the recent history or terminal output below. When the user asks a question, prefer code that computes the answer. Only when the user clearly asks for an answer that is already visible in the context (for example: what did that error mean? which file was it?), reply with a single echo of the answer, like: echo 'the answer.'
 
 $(_ei_context)"
     jq -n --arg model "$EI_MODEL" --arg sys "$sys" --arg user "$intent" \
