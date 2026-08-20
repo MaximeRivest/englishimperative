@@ -9,6 +9,10 @@
 # start the line with a comma to force translation:
 #   , make a folder called backup and go into it
 #
+# Bash parses (, ), |, ; and > before any hook can run. For a line with
+# such characters, quote it:  , "list the files (only the logs)"
+# or type the plain line and press Alt-Enter: readline wraps it for you.
+#
 # Note: bash runs command_not_found_handle in a subshell. The handler
 # therefore writes the generated code to a pending file, and
 # PROMPT_COMMAND evaluates it in the parent shell.
@@ -61,6 +65,11 @@ _ei_run_pending() {
 
 if [[ ":$PROMPT_COMMAND:" != *":_ei_run_pending:"* ]]; then
     PROMPT_COMMAND="_ei_run_pending${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+fi
+
+# Alt-Enter: wrap the current line as , "..." and submit it.
+if [[ $- == *i* ]]; then
+    bind '"\e\C-m": "\C-a, \"\C-e\"\C-m"'
 fi
 
 trap '[[ -f "$EI_PENDING" ]] && rm -f "$EI_PENDING"' EXIT
