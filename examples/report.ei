@@ -1,0 +1,11 @@
+# Monthly sales report
+@target python
+
+load the csv file sales.csv
+parse the date column as dates
+keep only the rows from 2024
+group by region and sum the revenue
+sort by revenue, largest first
+plot the result as a bar chart with the title "Sales 2024 by region"
+save the chart as sales_2024.png
+print the top 3 regions with their revenue

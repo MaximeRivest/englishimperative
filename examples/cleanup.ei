@@ -1,0 +1,8 @@
+# Clean a downloads folder
+@target bash
+
+go to the folder ~/Downloads
+delete all files older than 90 days, but ask me first
+move all pdf files into a subfolder called documents
+move all images into a subfolder called pictures
+show me how much disk space this freed
