@@ -23,7 +23,7 @@ EI_MODEL="${EI_MODEL:-qwen/qwen3.8-27b}"
 EI_PENDING="${EI_PENDING:-/tmp/ei-pending.$$}"
 EI_LOG="${EI_LOG:-/tmp/ei-session.$$.log}"
 EI_LOG_BYTES="${EI_LOG_BYTES:-3000}"   # how much recent output the model sees
-EI_HIST_LINES="${EI_HIST_LINES:-20}"   # how many history lines the model sees
+EI_HIST_LINES="${EI_HIST_LINES:-200}"  # how many history lines the model sees
 EI_GUARD="${EI_GUARD:-1}"              # 1 = confirm irreversible commands, 0 = off
 
 # Capture all session output into EI_LOG so the model can see what you saw.
@@ -33,14 +33,18 @@ if [[ $- == *i* && -z "$EI_CAPTURE_ON" ]]; then
     exec > >(tee -a "$EI_LOG") 2> >(tee -a "$EI_LOG" >&2)
 fi
 
+# Context ordering matters for vLLM prefix caching: the KV cache is reused
+# for the identical prompt prefix. So: static instructions first, then
+# append-only history (old lines never change), then the volatile block
+# (pwd, ls, output tail) and the statement at the very end.
 _ei_context() {
+    echo "Session history, oldest first:"
+    history "$EI_HIST_LINES" 2>/dev/null | sed 's/^ *[0-9]* *//'
+    echo
     echo "Current directory: $PWD"
     echo
     echo "Files here (truncated):"
     ls -1 2>/dev/null | head -40
-    echo
-    echo "Recent shell history:"
-    history "$EI_HIST_LINES" 2>/dev/null | sed 's/^ *[0-9]* *//'
     if [[ -s "$EI_LOG" ]]; then
         echo
         echo "Recent terminal output (may be what the user refers to):"
@@ -48,13 +52,14 @@ _ei_context() {
     fi
 }
 
-
 _ei_translate() {
     local intent="$1"
-    local sys="You are a strict English-to-bash interpreter inside a live interactive bash session on Linux. Translate the user's statement into bash code. Output ONLY the code: no markdown fences, no comments, no explanation. The code runs directly with eval in the user's shell. The user may refer to the recent history or terminal output below. When the user asks a question, prefer code that computes the answer. Only when the user clearly asks for an answer that is already visible in the context (for example: what did that error mean? which file was it?), reply with a single echo of the answer, like: echo 'the answer.'
+    local sys="You are a strict English-to-bash interpreter inside a live interactive bash session on Linux. Translate the user's statement into bash code. Output ONLY the code: no markdown fences, no comments, no explanation. The code runs directly with eval in the user's shell. The user may refer to the recent history or terminal output in the context. When the user asks a question, prefer code that computes the answer. Only when the user clearly asks for an answer that is already visible in the context (for example: what did that error mean? which file was it?), reply with a single echo of the answer, like: echo 'the answer.'"
+    local ctx
+    ctx="$(_ei_context)
 
-$(_ei_context)"
-    jq -n --arg model "$EI_MODEL" --arg sys "$sys" --arg user "$intent" \
+Statement to translate: $intent"
+    jq -n --arg model "$EI_MODEL" --arg sys "$sys" --arg user "$ctx" \
         '{model:$model, temperature:0, max_tokens:500,
           messages:[{role:"system",content:$sys},{role:"user",content:$user}]}' \
     | curl -s --max-time 60 "$EI_URL" \
