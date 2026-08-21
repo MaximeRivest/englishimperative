@@ -1,0 +1,336 @@
+{
+ "version": 2,
+ "translations": {
+  "5e08a4806549dc8ba0ab1769484262fc": {
+   "code": "def welcome(name):\n    greeting = tools.greet(name)\n    return greeting",
+   "stmt": "To welcome someone:\n    make the greeting for that person with the library\n    give back the greeting",
+   "at": 1787316172369
+  },
+  "45631bcc4425e473aad188d613a5ec7a": {
+   "code": "print(welcome(\"Maxime\"))",
+   "stmt": "Welcome the user called \"Maxime\" and print the result.",
+   "at": 1787316172879
+  },
+  "d05bce24454b9af271b119e4c507c630": {
+   "code": "print(tools.shout(welcome(\"Maxime\")))",
+   "stmt": "Print that same greeting again, but shouted.",
+   "at": 1787316173445
+  },
+  "c8dd790defb6cb254d8da3ef86fcaeb6": {
+   "code": "print(tools.farewell(\"Maxime\"))",
+   "stmt": "Say goodbye to \"Maxime\" and print it.",
+   "at": 1787316174063
+  },
+  "fd83c28028cbda45398d6eecbce2eba7": {
+   "code": "def sayhi(name):\n    greeting = tools.greet(name)\n    return greeting",
+   "stmt": "To sayhi someone:\n    make the greeting for that person with the library\n    give back the greeting",
+   "at": 1787316829476
+  },
+  "cfad1130934be70987bfb251bd625757": {
+   "code": "print(sayhi(\"Maxime\"))",
+   "stmt": "sayhi the user called \"Maxime\" and print the result.",
+   "at": 1787316829972
+  },
+  "f01cd9f861a25b68141816dbbed0e283": {
+   "code": "print(tools.shout(sayhi(\"Maxime\")))",
+   "stmt": "Print that same greeting again, but shouted.",
+   "at": 1787316830568
+  },
+  "2948906ad962abb1a9c63f66f6166219": {
+   "code": "print(tools.farewell(\"Maxime\"))",
+   "stmt": "Say goodbye to \"Maxime\" and print it.",
+   "at": 1787316831215
+  },
+  "622b316209fdafaa80192d2f93a66a9b": {
+   "code": "a = 3",
+   "stmt": "assign 3 to a",
+   "at": 1787316899814
+  },
+  "410b844ee520f874fdc3a66c5bd268f9": {
+   "code": "print(welcome(\"Maxime\"))",
+   "stmt": "sayhi the user called \"Maxime\" and print the result.",
+   "at": 1787316900296
+  },
+  "60bf3800de6684e50a8a1526ed9224e3": {
+   "code": "print(tools.shout(welcome(\"Maxime\")))",
+   "stmt": "Print that same greeting again, but shouted.",
+   "at": 1787316900883
+  },
+  "a863e601f7f57a3963aaa4aee6b06545": {
+   "code": "print(tools.farewell(\"Maxime\"))",
+   "stmt": "Say goodbye to \"Maxime\" and print it.",
+   "at": 1787316901466
+  },
+  "5175b2240657f6f18af3f570e349e7b4": {
+   "code": "def welcome_person(name):\n    greeting = tools.greet(name)\n    return greeting",
+   "stmt": "To welcome someone:\n    make the greeting for that person with the library\n    give back the greeting",
+   "at": 1787323322512
+  },
+  "d96f5771898453b643728cf11d6284dd": {
+   "code": "a = 3",
+   "stmt": "assign 3 to a",
+   "at": 1787323323227
+  },
+  "e90dad6b6b5633eacaf1704a7eaa5aa7": {
+   "code": "result = welcome_person(\"Maxime\")\nprint(result)",
+   "stmt": "sayhi the user called \"Maxime\" and print the result.",
+   "at": 1787323323953
+  },
+  "699d406f40ca24be3dd60f3a9d8f85ee": {
+   "code": "print(tools.shout(result))",
+   "stmt": "Print that same greeting again, but shouted.",
+   "at": 1787323324472
+  },
+  "75c8262ad50e6449fd2d2a8270a9ce0c": {
+   "code": "print(tools.farewell(\"Maxime\"))",
+   "stmt": "Say goodbye to \"Maxime\" and print it.",
+   "at": 1787323325316
+  },
+  "e64f16f8438e06f3a7de202e1efa4fe1": {
+   "code": "print(welcome_person(\"Maxime\"))",
+   "stmt": "welcome the user called \"Maxime\" and print the result.",
+   "at": 1787323559469
+  },
+  "248f32498dd77ecde7348102a673960a": {
+   "code": "assert tools.greet(\"Maxime\") == \"Hello, Maxime!\", f\"Expected 'Hello, Maxime!' but got {tools.greet('Maxime')!r}\"",
+   "stmt": "For example, to welcome \"Maxime\", the greeting library will return \"Hello, Maxime!\".",
+   "at": 1787323758422
+  },
+  "8e76acc3e95686cc88a270c7ac0e2c9d": {
+   "code": "def welcome(name):\n    return \"Hello, \" + name + \"!\"",
+   "stmt": "To welcome someone:\n    give back \"Hello, \" plus that person's name plus \"!\"",
+   "at": 1787323761686
+  },
+  "773a8b6d9aa501dd69b272feb4a09980": {
+   "code": "print(welcome(\"Maxime\"))",
+   "stmt": "Print the welcome for \"Maxime\".",
+   "at": 1787323762085
+  },
+  "76fd9fe6aa72eed30bc99cf9ac254f5f": {
+   "code": "assert welcome(\"Ada\") == \"Hello, Ada!\", f\"Expected 'Hello, Ada!' but got {welcome('Ada')!r}\"",
+   "stmt": "For example, welcoming \"Ada\" must give exactly \"Hello, Ada!\".",
+   "at": 1787323762892
+  }
+ },
+ "pins": {
+  "00c52b9744925cec9d5428a5": {
+   "code": "def welcome_person(name):\n    greeting = tools.greet(name)\n    return greeting",
+   "stmt": "To welcome someone:\n    make the greeting for that person with the library\n    give back the greeting",
+   "at": 1787323322513,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "e53eb03648eee66d9ecc7568": {
+   "code": "a = 3",
+   "stmt": "assign 3 to a",
+   "at": 1787323323227,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "8c2115790ad7dead2eefe6e3": {
+   "code": "result = welcome_person(\"Maxime\")\nprint(result)",
+   "stmt": "sayhi the user called \"Maxime\" and print the result.",
+   "at": 1787323323953,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-40dd78056267d31f": "cbcad88dfc1dd8a6737ad460"
+   }
+  },
+  "020af93911b46d9b2d639b48": {
+   "code": "print(tools.shout(result))",
+   "stmt": "Print that same greeting again, but shouted.",
+   "at": 1787323324472,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-a2128d68320408fa": "98499dcccb924ca88177be00"
+   }
+  },
+  "0c6c38d100671a13289fe2c3": {
+   "code": "print(tools.farewell(\"Maxime\"))",
+   "stmt": "Say goodbye to \"Maxime\" and print it.",
+   "at": 1787323325316,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "23b64bef21ea13467f0a265d": {
+   "code": "print(welcome_person(\"Maxime\"))",
+   "stmt": "welcome the user called \"Maxime\" and print the result.",
+   "at": 1787323559469,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-40dd78056267d31f": "cbcad88dfc1dd8a6737ad460"
+   }
+  },
+  "aea148d419886967d11e4227": {
+   "code": "assert tools.greet(\"Maxime\") == \"Hello, Maxime!\", f\"Expected 'Hello, Maxime!' but got {tools.greet('Maxime')!r}\"",
+   "stmt": "For example, to welcome \"Maxime\", the greeting library will return \"Hello, Maxime!\".",
+   "at": 1787323758422,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "523ee0647ff546eca54d606d": {
+   "code": "def welcome(name):\n    return \"Hello, \" + name + \"!\"",
+   "stmt": "To welcome someone:\n    give back \"Hello, \" plus that person's name plus \"!\"",
+   "at": 1787323761686,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "c14b4659fa7f01d51dc98e50": {
+   "code": "print(welcome(\"Maxime\"))",
+   "stmt": "Print the welcome for \"Maxime\".",
+   "at": 1787323762085,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-8e7d56bd0a45116f": "aed9a4e49dfe49cfee6a8289"
+   }
+  },
+  "27624c51d286695f780c0099": {
+   "code": "assert welcome(\"Ada\") == \"Hello, Ada!\", f\"Expected 'Hello, Ada!' but got {welcome('Ada')!r}\"",
+   "stmt": "For example, welcoming \"Ada\" must give exactly \"Hello, Ada!\".",
+   "at": 1787323762892,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-8e7d56bd0a45116f": "aed9a4e49dfe49cfee6a8289"
+   }
+  }
+ },
+ "survey": {
+  "key": "99c1e728d5e7c38eae99d208",
+  "value": {
+   "target": "python",
+   "preambleEnd": 1,
+   "uses": [],
+   "definitions": [
+    {
+     "line": 3,
+     "name": "welcome"
+    }
+   ],
+   "examples": [
+    {
+     "line": 8,
+     "name": "welcome_ada"
+    }
+   ]
+  }
+ },
+ "lint": {
+  "key": "99c1e728d5e7c38eae99d208",
+  "value": []
+ },
+ "graph": {
+  "version": 1,
+  "target": "python",
+  "engineId": "http:qwen/qwen3.8-27b",
+  "briefsHash": "e3b0c44298fc1c14",
+  "sourceHash": "8bbaefa87d6b6a2c31ab1ce7",
+  "builtAt": 1787323775474,
+  "nodes": [
+   {
+    "id": "n-8e7d56bd0a45116f",
+    "ordinal": 0,
+    "stmtKey": "523ee0647ff546eca54d606d",
+    "stmt": "To welcome someone:\n    give back \"Hello, \" plus that person's name plus \"!\"",
+    "startLine": 2,
+    "endLine": 3,
+    "sourceHash": "523ee0647ff546eca54d606d",
+    "implementationHash": "52986efa51461ff5727ebf1b",
+    "interfaceHash": "aed9a4e49dfe49cfee6a8289",
+    "facts": {
+     "defines": [
+      "welcome"
+     ],
+     "reads": [],
+     "calls": [],
+     "imports": [],
+     "functions": [
+      {
+       "name": "welcome",
+       "parameters": [
+        "name"
+       ],
+       "requiredParameters": 1,
+       "async": false
+      }
+     ],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-a2128d68320408fa",
+    "ordinal": 1,
+    "stmtKey": "c14b4659fa7f01d51dc98e50",
+    "stmt": "Print the welcome for \"Maxime\".",
+    "startLine": 5,
+    "endLine": 5,
+    "sourceHash": "c14b4659fa7f01d51dc98e50",
+    "implementationHash": "d771bf9bf5678983aae457f6",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "welcome"
+     ],
+     "calls": [
+      "print",
+      "welcome"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-8e7d56bd0a45116f",
+      "symbols": [
+       "welcome"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "d8947b2e574465d6924451ee"
+   },
+   {
+    "id": "n-62d884ddfd7846e8",
+    "ordinal": 2,
+    "stmtKey": "27624c51d286695f780c0099",
+    "stmt": "For example, welcoming \"Ada\" must give exactly \"Hello, Ada!\".",
+    "startLine": 7,
+    "endLine": 7,
+    "sourceHash": "27624c51d286695f780c0099",
+    "implementationHash": "f73339e72a58edbaf4dea87f",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "welcome"
+     ],
+     "calls": [
+      "welcome"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-8e7d56bd0a45116f",
+      "symbols": [
+       "welcome"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "d8947b2e574465d6924451ee"
+   }
+  ]
+ }
+}

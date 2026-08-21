@@ -1,0 +1,14 @@
+This Python module assigns a spending category to a merchant name.
+
+To categorize a merchant:
+    compare the merchant name, ignoring case:
+        contains "grocery" or "market"              | groceries
+        contains "gas" or "fuel"                    | transport
+        contains "cafe" or "restaurant" or "pizza"  | eating out
+        contains "pharmacy"                         | health
+        anything else                               | other
+
+For example, categorizing "Metro Grocery" must give "groceries".
+Categorizing "Green Fuel Stop" must give "transport".
+Categorizing "LUIGI PIZZA" must give "eating out".
+Categorizing "Book Nook" must give "other".

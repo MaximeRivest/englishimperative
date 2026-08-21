@@ -1,0 +1,14 @@
+This Python program builds a monthly spending report.
+It imports helper modules from ./money.ei and ./categorize.ei, and it reads the data file ./expenses.csv.
+
+Read the rows from the file "expenses.csv" in the current working directory; the first line is a header to skip, and every other row has a date, a merchant, and an amount.
+
+Build the spending totals by category: categorize each row's merchant and add its parsed amount to that category's total.
+
+Print the report: a "Spending report" title line, then one line per category, largest total first, in the form "  <category>: <formatted total>".
+
+Print the grand total line in the form "  TOTAL: <formatted total>".
+
+For example, the sum of the amounts 10 and 5.5, formatted as money, must be exactly "$15.50" with a leading dollar sign and exactly two digits after the decimal point.
+With the provided expenses.csv, the "eating out" total must format as exactly "$81.85".
+With the provided expenses.csv, the grand total must equal the sum of all category totals.

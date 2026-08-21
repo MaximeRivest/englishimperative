@@ -1,0 +1,437 @@
+{
+ "version": 2,
+ "translations": {
+  "2bc0c7e3ca83d22b57d71699980fe94b": {
+   "code": "import csv\n\nwith open(\"expenses.csv\", newline=\"\") as f:\n    reader = csv.reader(f)\n    next(reader)\n    expenses = [(row[0], row[1], float(row[2])) for row in reader]",
+   "stmt": "Read the rows from the file \"expenses.csv\" in the current working directory; the first line is a header to skip, and every other row has a date, a merchant, and an amount.",
+   "at": 1787353764892
+  },
+  "c2cc25fc793776e274e6891880b28950": {
+   "code": "categories = {}\nfor date, merchant, amount in expenses:\n    categories[merchant] = categories.get(merchant, 0.0) + amount",
+   "stmt": "Build the spending totals by category: categorize each row's merchant and add its parsed amount to that category's total.",
+   "at": 1787353765949
+  },
+  "9c8e27127e8577956b856914400c28be": {
+   "code": "print(\"Spending report\")\nfor category, total in sorted(categories.items(), key=lambda x: x[1], reverse=True):\n    print(f\"  {category}: {total:.2f}\")",
+   "stmt": "Print the report: a \"Spending report\" title line, then one line per category, largest total first, in the form \"  <category>: <formatted total>\".",
+   "at": 1787353767252
+  },
+  "456f36fbad0a8ed88579ac18822d03ed": {
+   "code": "print(f\"  TOTAL: {sum(categories.values()):.2f}\")",
+   "stmt": "Print the grand total line in the form \"  TOTAL: <formatted total>\".",
+   "at": 1787353768031
+  },
+  "7ac15cfd3590c1db369b0fa69152784a": {
+   "code": "def format_money(amount):\n    return f\"${amount:.2f}\"\n\nassert format_money(10 + 5.5) == \"$15.50\", f\"Expected '$15.50' but got {format_money(10 + 5.5)!r}\"",
+   "stmt": "For example, the sum of the amounts 10 and 5.5, formatted as money, must be exactly \"$15.50\" with a leading dollar sign and exactly two digits after the decimal point.",
+   "at": 1787353769750
+  },
+  "a01dc1f950740f4d5faf0a0cd7e29001": {
+   "code": "assert categories.get(\"eating out\") is not None, \"Category 'eating out' not found in categories\"\nassert f\"{categories['eating out']:.2f}\" == \"81.85\", f\"Expected 'eating out' total to format as '81.85', but got '{categories['eating out']:.2f}'\"",
+   "stmt": "With the provided expenses.csv, the \"eating out\" total must format as exactly \"$81.85\".",
+   "at": 1787353771786
+  },
+  "79ae0558f72488ba9ffeb89d02c1119c": {
+   "code": "assert abs(sum(categories.values()) - sum(categories.values())) < 1e-9, \"Grand total does not equal the sum of all category totals\"",
+   "stmt": "With the provided expenses.csv, the grand total must equal the sum of all category totals.",
+   "at": 1787353772912
+  }
+ },
+ "pins": {
+  "f3edea75f853cf6d61407666": {
+   "code": "import csv\n\nwith open(\"expenses.csv\", newline=\"\") as f:\n    reader = csv.reader(f)\n    next(reader)\n    expenses = [(row[0], row[1], float(row[2])) for row in reader]",
+   "stmt": "Read the rows from the file \"expenses.csv\" in the current working directory; the first line is a header to skip, and every other row has a date, a merchant, and an amount.",
+   "at": 1787353764892,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "ce6a23420965911e1761fd77": {
+   "code": "categories = {}\nfor date, merchant, amount in expenses:\n    categories[merchant] = categories.get(merchant, 0.0) + amount",
+   "stmt": "Build the spending totals by category: categorize each row's merchant and add its parsed amount to that category's total.",
+   "at": 1787353765949,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-fd521935442f59b5": "5c88b01ce3357f524067c5d3"
+   }
+  },
+  "8e16eadef82be30e4ea7c74b": {
+   "code": "print(\"Spending report\")\nfor category, total in sorted(categories.items(), key=lambda x: x[1], reverse=True):\n    print(f\"  {category}: {total:.2f}\")",
+   "stmt": "Print the report: a \"Spending report\" title line, then one line per category, largest total first, in the form \"  <category>: <formatted total>\".",
+   "at": 1787353767252,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-246d5326317eeb41": "567469514019ba313f2f74bf"
+   }
+  },
+  "fee5e078f4c8cd17d909e0a5": {
+   "code": "print(f\"  TOTAL: {sum(categories.values()):.2f}\")",
+   "stmt": "Print the grand total line in the form \"  TOTAL: <formatted total>\".",
+   "at": 1787353768031,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-246d5326317eeb41": "567469514019ba313f2f74bf"
+   }
+  },
+  "c4a9de952b35fc84ba8479b3": {
+   "code": "def format_money(amount):\n    return f\"${amount:.2f}\"\n\nassert format_money(10 + 5.5) == \"$15.50\", f\"Expected '$15.50' but got {format_money(10 + 5.5)!r}\"",
+   "stmt": "For example, the sum of the amounts 10 and 5.5, formatted as money, must be exactly \"$15.50\" with a leading dollar sign and exactly two digits after the decimal point.",
+   "at": 1787353769750,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "ec4d11250d5ea66b9ddd4cdb": {
+   "code": "assert categories.get(\"eating out\") is not None, \"Category 'eating out' not found in categories\"\nassert f\"{categories['eating out']:.2f}\" == \"81.85\", f\"Expected 'eating out' total to format as '81.85', but got '{categories['eating out']:.2f}'\"",
+   "stmt": "With the provided expenses.csv, the \"eating out\" total must format as exactly \"$81.85\".",
+   "at": 1787353771786,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-246d5326317eeb41": "567469514019ba313f2f74bf"
+   }
+  },
+  "1f1d8a38bd22108463f271ed": {
+   "code": "assert abs(sum(categories.values()) - sum(categories.values())) < 1e-9, \"Grand total does not equal the sum of all category totals\"",
+   "stmt": "With the provided expenses.csv, the grand total must equal the sum of all category totals.",
+   "at": 1787353772912,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-246d5326317eeb41": "567469514019ba313f2f74bf"
+   }
+  }
+ },
+ "survey": {
+  "key": "4c0e4d3b102af6bee157694f",
+  "value": {
+   "language": "English",
+   "target": "python",
+   "preambleEnd": 2,
+   "uses": [
+    "./money.ei",
+    "./categorize.ei",
+    "./expenses.csv"
+   ],
+   "definitions": [],
+   "examples": [
+    {
+     "line": 12,
+     "name": "money_format_example"
+    },
+    {
+     "line": 13,
+     "name": "eating_out_total"
+    },
+    {
+     "line": 14,
+     "name": "grand_total_consistency"
+    }
+   ]
+  }
+ },
+ "lint": {
+  "key": "4c0e4d3b102af6bee157694f",
+  "value": [
+   {
+    "line": 1,
+    "endLine": 1,
+    "message": "The file path './money.ei' and './categorize.ei' are ambiguous; it is unclear if these are Python modules, data files, or if the extension is a typo, which affects how the import or read operation is implemented."
+   },
+   {
+    "line": 3,
+    "endLine": 3,
+    "message": "The format of the 'date' field is not specified (e.g., YYYY-MM-DD vs MM/DD/YYYY), which is necessary if the date is used for any logic or parsing, though it may only be needed for categorization if the merchant is the only key."
+   },
+   {
+    "line": 5,
+    "endLine": 5,
+    "message": "The mapping of merchants to categories is not defined in the program text; it is unclear if the 'categorize' module provides a static dictionary, a function, or if the mapping is derived from the data, which is critical for the 'add to category' step."
+   },
+   {
+    "line": 7,
+    "endLine": 7,
+    "message": "The 'formatted total' format is not explicitly defined in this line, only in line 12. While line 12 gives an example, it is ambiguous if the format is always '$X.XX' or if it changes for larger numbers (e.g., thousands separators)."
+   }
+  ]
+ },
+ "graph": {
+  "version": 1,
+  "target": "python",
+  "engineId": "http:qwen/qwen3.8-27b",
+  "briefsHash": "0521ad830fd30069",
+  "sourceHash": "fb9a04624613a2bc25a6ca60",
+  "builtAt": 1787353818379,
+  "nodes": [
+   {
+    "id": "n-fd521935442f59b5",
+    "ordinal": 0,
+    "stmtKey": "f3edea75f853cf6d61407666",
+    "stmt": "Read the rows from the file \"expenses.csv\" in the current working directory; the first line is a header to skip, and every other row has a date, a merchant, and an amount.",
+    "startLine": 3,
+    "endLine": 3,
+    "sourceHash": "f3edea75f853cf6d61407666",
+    "implementationHash": "8f8150e2c96e99134c227845",
+    "interfaceHash": "5c88b01ce3357f524067c5d3",
+    "facts": {
+     "defines": [
+      "csv",
+      "expenses",
+      "f",
+      "reader"
+     ],
+     "reads": [
+      "csv",
+      "f",
+      "reader"
+     ],
+     "calls": [
+      "csv.reader",
+      "float",
+      "next",
+      "open"
+     ],
+     "imports": [
+      "csv"
+     ],
+     "functions": [],
+     "classes": [],
+     "effects": [
+      "reads_files"
+     ],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-246d5326317eeb41",
+    "ordinal": 1,
+    "stmtKey": "ce6a23420965911e1761fd77",
+    "stmt": "Build the spending totals by category: categorize each row's merchant and add its parsed amount to that category's total.",
+    "startLine": 5,
+    "endLine": 5,
+    "sourceHash": "ce6a23420965911e1761fd77",
+    "implementationHash": "b3c9d8ac95d2922f04790581",
+    "interfaceHash": "567469514019ba313f2f74bf",
+    "facts": {
+     "defines": [
+      "amount",
+      "categories",
+      "date",
+      "merchant"
+     ],
+     "reads": [
+      "amount",
+      "categories",
+      "expenses",
+      "merchant"
+     ],
+     "calls": [
+      "categories.get"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-fd521935442f59b5",
+      "symbols": [
+       "expenses"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "089dcfb222fc6fb111be4a16"
+   },
+   {
+    "id": "n-1b4be6d681681dd0",
+    "ordinal": 2,
+    "stmtKey": "8e16eadef82be30e4ea7c74b",
+    "stmt": "Print the report: a \"Spending report\" title line, then one line per category, largest total first, in the form \"  <category>: <formatted total>\".",
+    "startLine": 7,
+    "endLine": 7,
+    "sourceHash": "8e16eadef82be30e4ea7c74b",
+    "implementationHash": "b86342fd8e8730501ab0af71",
+    "interfaceHash": "9a50f8287b930e9fd3628ae5",
+    "facts": {
+     "defines": [
+      "category",
+      "total"
+     ],
+     "reads": [
+      "categories",
+      "category",
+      "total"
+     ],
+     "calls": [
+      "categories.items",
+      "print",
+      "sorted"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-246d5326317eeb41",
+      "symbols": [
+       "categories"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "114c90140d04f15de5229488"
+   },
+   {
+    "id": "n-bcb4f71331ebdce0",
+    "ordinal": 3,
+    "stmtKey": "fee5e078f4c8cd17d909e0a5",
+    "stmt": "Print the grand total line in the form \"  TOTAL: <formatted total>\".",
+    "startLine": 9,
+    "endLine": 9,
+    "sourceHash": "fee5e078f4c8cd17d909e0a5",
+    "implementationHash": "cb7b523de04eb683849f44be",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "categories"
+     ],
+     "calls": [
+      "categories.values",
+      "print",
+      "sum"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-246d5326317eeb41",
+      "symbols": [
+       "categories"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "114c90140d04f15de5229488"
+   },
+   {
+    "id": "n-62ba796aeb9ac66c",
+    "ordinal": 4,
+    "stmtKey": "c4a9de952b35fc84ba8479b3",
+    "stmt": "For example, the sum of the amounts 10 and 5.5, formatted as money, must be exactly \"$15.50\" with a leading dollar sign and exactly two digits after the decimal point.",
+    "startLine": 11,
+    "endLine": 11,
+    "sourceHash": "c4a9de952b35fc84ba8479b3",
+    "implementationHash": "70631cc33195e45bfb141215",
+    "interfaceHash": "77026db131c8fb741932ab2a",
+    "facts": {
+     "defines": [
+      "format_money"
+     ],
+     "reads": [
+      "format_money"
+     ],
+     "calls": [
+      "format_money"
+     ],
+     "imports": [],
+     "functions": [
+      {
+       "name": "format_money",
+       "parameters": [
+        "amount"
+       ],
+       "requiredParameters": 1,
+       "async": false
+      }
+     ],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-c1d0fe22d7b9bcf5",
+    "ordinal": 5,
+    "stmtKey": "ec4d11250d5ea66b9ddd4cdb",
+    "stmt": "With the provided expenses.csv, the \"eating out\" total must format as exactly \"$81.85\".",
+    "startLine": 12,
+    "endLine": 12,
+    "sourceHash": "ec4d11250d5ea66b9ddd4cdb",
+    "implementationHash": "d18bda6f55d728daf9f4193b",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "categories"
+     ],
+     "calls": [
+      "categories.get"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-246d5326317eeb41",
+      "symbols": [
+       "categories"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "114c90140d04f15de5229488"
+   },
+   {
+    "id": "n-bd94080b8e40f17d",
+    "ordinal": 6,
+    "stmtKey": "1f1d8a38bd22108463f271ed",
+    "stmt": "With the provided expenses.csv, the grand total must equal the sum of all category totals.",
+    "startLine": 13,
+    "endLine": 13,
+    "sourceHash": "1f1d8a38bd22108463f271ed",
+    "implementationHash": "aba62c881e7afb392bd618d9",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "categories"
+     ],
+     "calls": [
+      "abs",
+      "categories.values",
+      "sum"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-246d5326317eeb41",
+      "symbols": [
+       "categories"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "114c90140d04f15de5229488"
+   }
+  ]
+ }
+}

@@ -1,0 +1,8 @@
+This program is written in Python.
+
+To welcome someone:
+    give back "Hello, " plus that person's name plus "!"
+
+Print the welcome for "Maxime".
+
+For example, welcoming "Ada" must give exactly "Hello, Ada!".

@@ -1,0 +1,15 @@
+This Python module works with money values.
+
+To parse a money amount from some text:
+    remove any leading dollar sign and any commas from the text
+    turn what remains into a number
+    give back that number rounded to 2 decimals as a numeric value (not formatted text)
+
+To format a money amount:
+    give back the amount as text like "$1,234.50": a dollar sign,
+    thousands separated by commas, and always 2 decimals
+
+For example, parsing "$1,299.99" must give 1299.99.
+Parsing "54.20" must give the numeric value 54.2 (equivalent to 54.20).
+Formatting 1234.5 must give exactly "$1,234.50".
+Formatting 15.5 must give exactly "$15.50".

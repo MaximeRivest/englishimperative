@@ -1,0 +1,397 @@
+{
+ "version": 2,
+ "translations": {
+  "dcd4ddf67e92b7f8fe9bac4a68a69070": {
+   "code": "def add(*args):\n    return sum(args)",
+   "stmt": "to add take any amount of inputs and return the sum",
+   "at": 1787326123099
+  },
+  "006f1635b6f36b1097ef1584f91e3d75": {
+   "code": "assert add(12, 23) == 35, \"add(12, 23) should return 35\"",
+   "stmt": "for example giving 12 and 23 to add would return 35.",
+   "at": 1787326167122
+  },
+  "8bebb4d7ee89e74bf356f17fbc15dcd1": {
+   "code": "def add(*args):\n    return sum(args)",
+   "stmt": "to add take any amount of inputs",
+   "at": 1787326213808
+  },
+  "8620ee444f23eb8a35fcdb7b3281892f": {
+   "code": "print(\"its python\")",
+   "stmt": "its python",
+   "at": 1787326214161
+  },
+  "db4ee5a88fe4734ec296ab40169b214e": {
+   "code": "total = 0",
+   "stmt": "set total to 0",
+   "at": 1787326214530
+  },
+  "cddb1156b0084ad202b2222c7599dd53": {
+   "code": "for each_input in inputs:",
+   "stmt": "for each input in inputs",
+   "at": 1787326214934
+  },
+  "d528c7143db03b6aaf30f902ae623343": {
+   "code": "total += each_input",
+   "stmt": "add input to total",
+   "at": 1787326215289
+  },
+  "0b6dd6a35c5c51cda193170e51696f9c": {
+   "code": "return total",
+   "stmt": "return total",
+   "at": 1787326215651
+  },
+  "2b8e994ba04e3c9380a60d452350aa5f": {
+   "code": "assert add(12, 23) == 35, \"add(12, 23) should return 35\"",
+   "stmt": "for example giving 12 and 23 to add would return 35.",
+   "at": 1787326216676
+  },
+  "b88bb61a6f07a4b7dc930f9df654670e": {
+   "code": "add(23, 498, 38)",
+   "stmt": "add 23 to 498 to  38",
+   "at": 1787326295407
+  },
+  "93638f880b9da7ebd8cd9f1bead993df": {
+   "code": "res = add(23, 498, 38)",
+   "stmt": "add 23 to 498 to  38 save to res",
+   "at": 1787326325220
+  },
+  "f6e06cb9a120a9dd510c93ade8d771b0": {
+   "code": "print(res)",
+   "stmt": "show me res",
+   "at": 1787326325542
+  },
+  "19a6928c6a97840fc4e34f2a57e089d7": {
+   "code": "print(res)",
+   "stmt": "res",
+   "at": 1787332954248
+  },
+  "ee162900d742ed8cf38420ea0818706e": {
+   "code": "def add_strings(*args):\n    return ''.join(args)",
+   "stmt": "add strings toghether",
+   "at": 1787332983132
+  }
+ },
+ "pins": {
+  "a48154b7b026477b9ac60066": {
+   "code": "def add(*args):\n    return sum(args)",
+   "stmt": "to add take any amount of inputs and return the sum",
+   "at": 1787326123099,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "a016c7190d8e7c266361c671": {
+   "code": "def add(*args):\n    return sum(args)",
+   "stmt": "to add take any amount of inputs",
+   "at": 1787326213808,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "b7278d18eece6055d2006727": {
+   "code": "print(\"its python\")",
+   "stmt": "its python",
+   "at": 1787326214161,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "49a6b42bdf9edeaa3888616d": {
+   "code": "total = 0",
+   "stmt": "set total to 0",
+   "at": 1787326214531,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "8b6764895276a0ce76c075f9": {
+   "code": "for each_input in inputs:",
+   "stmt": "for each input in inputs",
+   "at": 1787326214934,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "f0f30c330f7480b9a2c47f8e": {
+   "code": "total += each_input",
+   "stmt": "add input to total",
+   "at": 1787326215289,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "cab9cfb5fd8b9bc26f9a3b50": {
+   "code": "return total",
+   "stmt": "return total",
+   "at": 1787326215651,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-d518625df732f1d5": "640eccebfcf5b58500d9fb97"
+   }
+  },
+  "7e43294b4af55cdf49cf2834": {
+   "code": "assert add(12, 23) == 35, \"add(12, 23) should return 35\"",
+   "stmt": "for example giving 12 and 23 to add would return 35.",
+   "at": 1787326216676,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-a496c2f8ae7306f3": "b5e011cb3609671041fcb546"
+   }
+  },
+  "8c07e9b71dd15398df7a3ad8": {
+   "code": "add(23, 498, 38)",
+   "stmt": "add 23 to 498 to  38",
+   "at": 1787326295407,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-a496c2f8ae7306f3": "b5e011cb3609671041fcb546"
+   }
+  },
+  "a3829a6eabfa2b4a915189ea": {
+   "code": "res = add(23, 498, 38)",
+   "stmt": "add 23 to 498 to  38 save to res",
+   "at": 1787326325220,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-a496c2f8ae7306f3": "b5e011cb3609671041fcb546"
+   }
+  },
+  "798723019a49f19040a51fbf": {
+   "code": "print(res)",
+   "stmt": "show me res",
+   "at": 1787326325542,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-2c60b30a9549a6ed": "98c396438b36520305bfadd7"
+   }
+  },
+  "6eeb55f76600d4ad08be72ad": {
+   "code": "print(res)",
+   "stmt": "res",
+   "at": 1787332954248,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-2c60b30a9549a6ed": "98c396438b36520305bfadd7"
+   }
+  }
+ },
+ "survey": {
+  "key": "541d3f17106202faf8ea24e0",
+  "value": {
+   "language": "English",
+   "target": "python",
+   "preambleEnd": 1,
+   "uses": [],
+   "definitions": [],
+   "examples": [
+    {
+     "line": 11,
+     "name": "add_12_23_returns_35"
+    }
+   ]
+  }
+ },
+ "lint": {
+  "key": "541d3f17106202faf8ea24e0",
+  "value": [
+   {
+    "line": 2,
+    "endLine": 2,
+    "message": "The phrase 'take any amount of inputs' is ambiguous regarding the data type (numeric vs string) and the delimiter or method for providing multiple values (e.g., comma-separated, space-separated, or a list)."
+   },
+   {
+    "line": 4,
+    "endLine": 4,
+    "message": "The instruction 'add 23 to 498 to 38' is ambiguous regarding the order of operations or if it implies a cumulative sum, though mathematically addition is commutative, the phrasing suggests a sequence that might be misinterpreted as a specific algorithmic step rather than a simple sum."
+   },
+   {
+    "line": 8,
+    "endLine": 8,
+    "message": "The line 'res' is unclear in its intent. It is unclear if this is a variable declaration, a print statement, or a redundant reference to the variable defined in line 5."
+   }
+  ]
+ },
+ "graph": {
+  "version": 1,
+  "target": "python",
+  "engineId": "http:qwen/qwen3.8-27b",
+  "briefsHash": "e3b0c44298fc1c14",
+  "sourceHash": "41e44cce70a9576dd35e59b0",
+  "builtAt": 1787332954360,
+  "nodes": [
+   {
+    "id": "n-a496c2f8ae7306f3",
+    "ordinal": 0,
+    "stmtKey": "a016c7190d8e7c266361c671",
+    "stmt": "to add take any amount of inputs",
+    "startLine": 2,
+    "endLine": 2,
+    "sourceHash": "a016c7190d8e7c266361c671",
+    "implementationHash": "3ba0851c961292600a9808ac",
+    "interfaceHash": "b5e011cb3609671041fcb546",
+    "facts": {
+     "defines": [
+      "add"
+     ],
+     "reads": [],
+     "calls": [
+      "sum"
+     ],
+     "imports": [],
+     "functions": [
+      {
+       "name": "add",
+       "parameters": [
+        "args"
+       ],
+       "requiredParameters": 0,
+       "async": false
+      }
+     ],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-2c60b30a9549a6ed",
+    "ordinal": 1,
+    "stmtKey": "a3829a6eabfa2b4a915189ea",
+    "stmt": "add 23 to 498 to  38 save to res",
+    "startLine": 4,
+    "endLine": 4,
+    "sourceHash": "a3829a6eabfa2b4a915189ea",
+    "implementationHash": "19786bdff91e5ed858232866",
+    "interfaceHash": "98c396438b36520305bfadd7",
+    "facts": {
+     "defines": [
+      "res"
+     ],
+     "reads": [
+      "add"
+     ],
+     "calls": [
+      "add"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-a496c2f8ae7306f3",
+      "symbols": [
+       "add"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "165c53bfbfb1df8f5e64f1a2"
+   },
+   {
+    "id": "n-a1e873f2b0a19aeb",
+    "ordinal": 2,
+    "stmtKey": "798723019a49f19040a51fbf",
+    "stmt": "show me res",
+    "startLine": 6,
+    "endLine": 6,
+    "sourceHash": "798723019a49f19040a51fbf",
+    "implementationHash": "ebd8e7e0af525db6c9cbd73c",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "res"
+     ],
+     "calls": [
+      "print"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-2c60b30a9549a6ed",
+      "symbols": [
+       "res"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "af59821b934b3e9e682c2787"
+   },
+   {
+    "id": "n-a57333d126491906",
+    "ordinal": 3,
+    "stmtKey": "6eeb55f76600d4ad08be72ad",
+    "stmt": "res",
+    "startLine": 8,
+    "endLine": 8,
+    "sourceHash": "6eeb55f76600d4ad08be72ad",
+    "implementationHash": "ebd8e7e0af525db6c9cbd73c",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "res"
+     ],
+     "calls": [
+      "print"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-2c60b30a9549a6ed",
+      "symbols": [
+       "res"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "af59821b934b3e9e682c2787"
+   },
+   {
+    "id": "n-ddcebbf3c1059f13",
+    "ordinal": 4,
+    "stmtKey": "7e43294b4af55cdf49cf2834",
+    "stmt": "for example giving 12 and 23 to add would return 35.",
+    "startLine": 10,
+    "endLine": 10,
+    "sourceHash": "7e43294b4af55cdf49cf2834",
+    "implementationHash": "fb318603504015b31a0f63ce",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "add"
+     ],
+     "calls": [
+      "add"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-a496c2f8ae7306f3",
+      "symbols": [
+       "add"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "165c53bfbfb1df8f5e64f1a2"
+   }
+  ]
+ }
+}

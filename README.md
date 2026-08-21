@@ -36,6 +36,30 @@ Your English line is the command. The execution is immediate.
 If you want a safeguard, say it in English ("ask me before you delete"),
 and the generated code contains the prompt.
 
+## Core rule: no reserved words, ever
+
+The user never has to learn specific vocabulary. Wording is never
+load-bearing. Only two things carry meaning:
+
+- **Structure**: position and format, like a paper or a resume. The
+  opening paragraph introduces the program. A line ending in ':' opens an
+  indented block. '#' comments, '\' continues a line. That is all.
+- **Interpretation**: model passes read intent from meaning, in any
+  phrasing. The survey pass, the statement translator, and the repair
+  pass are independent interpreters, so one misreading does not break
+  the program.
+
+Implementation consequences:
+
+- No keyword may ever be required. Directives like '@target' stay legal
+  as optional overrides only.
+- Prompts must not teach "magic phrases" as the way to express something;
+  they instruct the model to accept any wording with that meaning.
+- Detection logic in code (not in the model) may use structure (file
+  extensions, indentation, punctuation, paths) but never English words.
+- Every layer fails soft: a missed extraction falls through to the next
+  interpreter, and runtime errors stay visible.
+
 ## Modes
 
 ### REPL mode
@@ -60,13 +84,11 @@ $ ei compile examples/report.ei -o report.py
 $ python report.py
 ```
 
-### Inline mode
+### Editor mode
 
-One command, run and exit:
-
-```
-$ ei run "rename all .jpeg files in this folder to .jpg"
-```
+The installed VS Code extension provides compiled-code views, statement
+pins, precise dependency staleness, diagnostics, locked builds, and a
+semantic dependency graph.
 
 ## Transparency, not confirmation
 
@@ -78,14 +100,27 @@ $ ei run "rename all .jpeg files in this folder to .jpg"
 
 ## The .ei file format
 
-- One statement per line.
+- An optional opening paragraph describes the program, target, and libraries
+  in any words.
+- One statement goes on each top-level line.
+- Indent a block body under a line that ends in `:`.
 - Lines that start with `#` are comments.
 - A line that ends with `\` continues on the next line.
-- `@target python` or `@target bash` sets the output language (first line).
+- Optional directives such as `@target python` remain compatible, but users
+  never need them.
 
-See the `examples/` folder for full examples.
+See the `examples/` folder for complete examples.
+
+## Reproducible programs
+
+The first successful translation pins by default in a `.eic.json` sidecar.
+Each statement records source, interface, and implementation hashes. Python
+AST and scope analysis build a dependency graph, so only real dependents
+become stale. A locked build uses pins only and never calls a model.
 
 ## Status
 
-Design phase. This README and the examples define the intended behavior.
-No implementation exists yet.
+Working implementation: Bash/Python CLI, Bash/IPython/R interactive modes,
+and an installed VS Code extension. The extension includes incremental
+compilation, pins, dependency analysis, source maps, diagnostics, locked
+builds, and an inspectable graph.
