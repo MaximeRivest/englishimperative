@@ -25,13 +25,40 @@ EI_LOG="${EI_LOG:-/tmp/ei-session.$$.log}"
 EI_LOG_BYTES="${EI_LOG_BYTES:-3000}"   # how much recent output the model sees
 EI_HIST_LINES="${EI_HIST_LINES:-25}"   # how many history lines the model sees
 EI_GUARD="${EI_GUARD:-1}"              # 1 = confirm irreversible commands, 0 = off
+EI_HIST_DIR="${EI_HIST_DIR:-$HOME/.ei/history}"  # per-session history logs
 
-# Capture all session output into EI_LOG so the model can see what you saw.
+# Output of translated commands is captured into EI_LOG (see _ei_run_pending)
+# so the model can see what you saw. Native commands keep the real TTY:
+# a global tee would break full-screen programs (TUI agents, vim, less...).
 if [[ $- == *i* && -z "$EI_CAPTURE_ON" ]]; then
     EI_CAPTURE_ON=1
     : > "$EI_LOG"
-    exec > >(tee -a "$EI_LOG") 2> >(tee -a "$EI_LOG" >&2)
 fi
+
+# Per-session, per-line history log. One file per shell, one line per command.
+# Format: <epoch>\t<repl>.<pid>\t<command>   (newlines encoded as \n)
+# Merge all sessions with:  ei history
+if [[ $- == *i* && -z "${EI_HIST_SESSION:-}" ]]; then
+    mkdir -p "$EI_HIST_DIR"
+    EI_HIST_SESSION="$EI_HIST_DIR/bash.$(date +%s).$$.log"
+fi
+
+_ei_histlog() {
+    local entry num cmd
+    entry=$(HISTTIMEFORMAT= history 1) || return 0
+    [[ -z "$entry" ]] && return 0
+    num=$(awk '{print $1; exit}' <<<"$entry")
+    [[ "$num" == "${_EI_LAST_HISTNUM:-}" ]] && return 0
+    _EI_LAST_HISTNUM="$num"
+    cmd="${entry#*"$num"}"
+    cmd="${cmd#"${cmd%%[![:space:]]*}"}"
+    printf '%s\tbash.%s\t%s\n' "$(date +%s)" "$$" "${cmd//$'\n'/\\n}" >> "$EI_HIST_SESSION"
+}
+
+# These programs are full-screen TUIs; give them the real TTY explicitly.
+pi()     { command pi     "$@" </dev/tty >/dev/tty 2>&1; }
+codex()  { command codex  "$@" </dev/tty >/dev/tty 2>&1; }
+claude() { command claude "$@" </dev/tty >/dev/tty 2>&1; }
 
 # Context ordering matters for vLLM prefix caching: the KV cache is reused
 # for the identical prompt prefix. So: static instructions first, then
@@ -98,7 +125,8 @@ _ei_run_pending() {
             [[ "$reply" == y || "$reply" == Y ]] || { echo 'ei: skipped' >&2; return; }
         fi
         history -s "$code"
-        eval "$code"
+        eval "$code" > >(tee -a "$EI_LOG") 2> >(tee -a "$EI_LOG" >&2)
+        wait $!
     fi
 }
 
@@ -107,7 +135,7 @@ _ei_run_pending() {
 }
 
 if [[ ":$PROMPT_COMMAND:" != *":_ei_run_pending:"* ]]; then
-    PROMPT_COMMAND="_ei_run_pending${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+    PROMPT_COMMAND="_ei_run_pending;_ei_histlog${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
 fi
 
 # Alt-Enter: wrap the current line as , "..." and submit it.

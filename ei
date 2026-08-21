@@ -1,84 +1,341 @@
 #!/usr/bin/env bash
-# ei — compile or run a .ei file (English statements, one per line).
+# ei — compile or run a .ei file (a natural-language program).
 #
 #   ei compile FILE.ei [-o OUT]    translate to a script, print or write it
 #   ei run FILE.ei                 translate, then execute
+#   ei history [-s SESSION]        merged per-line history of all sessions
+#   ei locked FILE.ei [-o OUT]     build from pins only; never call a model
+#   ei graph FILE.ei               show AST facts and dependencies
+#   ei test FILE.ei                run the program's stated examples as tests
+#   ei debug FILE.ei               step through the program English line by line
+#   ei lint FILE.ei                report ambiguous prose before translation
 #
-# File format:
-#   @target python|bash    first non-comment line, default: bash
-#   # comment              kept in the output script
-#   line \                 continuation
+# File format: free prose. Structural conventions only, no reserved words:
+#   - An optional opening paragraph says what the program is, its language,
+#     and the libraries it uses. Any wording works.
+#   - One statement per line. Indent a block body under a line ending in ':'.
+#   - '#' starts a comment; a trailing '\' continues a line.
+#   - '@target python|bash' still works and overrides the preamble.
+#
+# Engines:
+#   EI_ENGINE=http (default)  OpenAI-compatible endpoint (EI_URL, EI_KEY, EI_MODEL)
+#   EI_ENGINE=pi              pi CLI; EI_PI_MODEL="provider/id" selects the model
+#
+# Compile passes (like a compiler, so definitions may sit below their use):
+#   1 survey     one model call over the whole file: target, libraries,
+#                function definitions (hoisted), preamble extent
+#   2 briefs     build or load cached API briefs for libraries (~/.ei/libs)
+#   3 translate  statement by statement; hoisted definitions go first
+#   4 check      bash -n / python ast.parse; one automatic repair attempt
 set -euo pipefail
 
+EI_ENGINE="${EI_ENGINE:-http}"
 EI_URL="${EI_URL:-http://192.168.2.24:8000/v1/chat/completions}"
 EI_KEY="${EI_KEY:-inktype-local}"
 EI_MODEL="${EI_MODEL:-qwen/qwen3.8-27b}"
+EI_PI_MODEL="${EI_PI_MODEL:-}"
+EI_LIB_DIR="${EI_LIB_DIR:-$HOME/.ei/libs}"
+EI_DIR=$(dirname "$(readlink -f "$0")")
+EI_MODE_FILE="${EI_MODE_FILE:-$EI_DIR/ei-mode.json}"
 
 usage() { grep '^#   ' "$0" | sed 's/^#   //'; exit 1; }
 
-translate() { # $1=target $2=code-so-far $3=statement
-    local sys="You are a strict English-to-$1 interpreter. Translate the user's statement into $1 code. Output ONLY the code: no markdown fences, no comments, no explanation. The code is appended to the script shown in the context, so build on its state (variables, imports, directory). The statement may be a block: a header line that ends with a colon, with an indented body. A body may contain a decision table (rows with |): translate it into the equivalent conditional logic. 'to <phrase>:' defines a function; 'give back' means return."
+strip_fences() { sed '/^```/d'; }
+
+# One model call. $1=system $2=user [$3=max_tokens]. Prints the answer.
+llm() {
+    if [[ "$EI_ENGINE" == pi ]]; then
+        local args=(-p --no-session --no-skills --no-context-files --no-tools --thinking off)
+        [[ -n "$EI_PI_MODEL" ]] && args+=(--model "$EI_PI_MODEL")
+        # The ei prompt mode makes the model a strict interpreter; the
+        # per-call task arrives through --append-system-prompt.
+        [[ -f "$EI_MODE_FILE" ]] && args+=(--prompt-mode-file "$EI_MODE_FILE")
+        # Transient provider failures happen; retry up to 3 times.
+        local out="" try
+        for try in 1 2 3; do
+            out=$(pi "${args[@]}" --append-system-prompt "$1" "$2" || true)
+            [[ -n "$out" ]] && break
+            (( try < 3 )) && { echo "ei: model call failed; retry $try" >&2; sleep $((try*2)); }
+        done
+        printf '%s\n' "$out"
+    else
+        jq -n --arg model "$EI_MODEL" --arg sys "$1" --arg user "$2" --argjson mt "${3:-800}" \
+            '{model:$model, temperature:0, max_tokens:$mt,
+              messages:[{role:"system",content:$sys},{role:"user",content:$user}]}' \
+        | curl -s --max-time 120 "$EI_URL" \
+            -H "Authorization: Bearer $EI_KEY" \
+            -H "Content-Type: application/json" \
+            -d @- \
+        | jq -r '.choices[0].message.content // empty' || true
+    fi
+}
+
+# ---------------------------------------------------------------- pass 1
+# Survey the whole file. Free wording: the model reads the prose and
+# extracts structure. Sets S_TARGET S_PRE S_USES[] S_DEF_LINES[] S_DEF_NAMES[].
+S_TARGET=bash; S_PRE=0; S_USES=(); S_DEF_LINES=(); S_DEF_NAMES=()
+survey() { # $1=file
+    local numbered sys out
+    numbered=$(awk '{printf "%d: %s\n", NR, $0}' "$1")
+    sys='You analyze a natural-language program. Input lines are numbered "N: text".
+Output ONLY one JSON object, no fences, no prose:
+{"target":"bash"|"python","preamble_end_line":N,"uses":["path",...],"definitions":[{"line":N,"name":"snake_case_name"},...]}
+target: the language the text states or implies; default bash.
+preamble_end_line: last line of an opening description that only introduces the program (0 if the file starts with instructions).
+uses: local files, directories, or repos the program says it depends on, exactly as written.
+definitions: top-level statements that define a reusable procedure, in any wording, with the line number of their first line and a good target-language function name.
+The author never uses reserved words; read intent from meaning and structure, not from specific vocabulary.'
+    out=$(llm "$sys" "$numbered" 500 | strip_fences)
+    if jq -e 'type=="object"' >/dev/null 2>&1 <<<"$out"; then
+        S_TARGET=$(jq -r 'if .target=="python" then "python" else "bash" end' <<<"$out")
+        S_PRE=$(jq -r '.preamble_end_line // 0' <<<"$out")
+        [[ "$S_PRE" =~ ^[0-9]+$ ]] || S_PRE=0
+        # structural rule: the preamble is at most the first paragraph
+        local first_blank
+        first_blank=$(grep -n -m1 '^[[:space:]]*$' "$1" | cut -d: -f1 || true)
+        [[ -n "$first_blank" ]] && (( S_PRE >= first_blank )) && S_PRE=$((first_blank-1))
+        mapfile -t S_USES < <(jq -r '.uses[]? // empty' <<<"$out")
+        mapfile -t S_DEF_LINES < <(jq -r '.definitions[]?.line // empty' <<<"$out")
+        mapfile -t S_DEF_NAMES < <(jq -r '.definitions[]?.name // empty' <<<"$out")
+    else
+        echo "ei: survey failed; defaults: target=bash, no libraries" >&2
+    fi
+}
+
+# ---------------------------------------------------------------- pass 2
+# Library briefs, cached under EI_LIB_DIR and keyed by a content fingerprint.
+fingerprint() { # $1=path
+    if [[ -d "$1" ]] && git -C "$1" rev-parse HEAD >/dev/null 2>&1; then
+        git -C "$1" rev-parse HEAD
+    else
+        find "$1" -type f \( -name '*.py' -o -name '*.sh' -o -name '*.R' -o -name '*.r' \) \
+            -printf '%p %T@\n' 2>/dev/null | sort | sha256sum | cut -c1-16
+    fi
+}
+
+grep_brief() { # $1=path — cheap deterministic signature dump
+    local -a files=(); local f
+    if [[ -f "$1" ]]; then files=("$1")
+    else mapfile -t files < <(find "$1" -maxdepth 3 -type f \
+            \( -name '*.py' -o -name '*.sh' -o -name '*.R' -o -name '*.r' \) 2>/dev/null | head -40)
+    fi
+    for f in "${files[@]}"; do
+        echo "## $f"
+        grep -nE '^(def |class |function |[A-Za-z_][A-Za-z0-9_.]* *(<-|=) *function)|^[A-Za-z_][A-Za-z0-9_]*\(\)' \
+            "$f" 2>/dev/null | head -40 || true
+    done | head -300
+}
+
+prelude_for() { # $1=target $2=path-as-written — deterministic load code
+    local p="${2/#\~/$HOME}" f m out=""
+    [[ -e "$p" ]] || return 0
+    if [[ "$1" == python ]]; then
+        local dir="$p"
+        [[ -f "$p" ]] && dir=$(dirname "$p")
+        out="sys.path.insert(0, '$dir')"$'\n'
+        if [[ -f "$p" ]]; then
+            m=$(basename "$p"); out+="import ${m%.*}"$'\n'
+        else
+            while IFS= read -r f; do
+                m=$(basename "$f"); [[ "$m" == __* ]] && continue
+                out+="import ${m%.*}"$'\n'
+            done < <(find "$p" -maxdepth 1 -name '*.py' | sort | head -8)
+        fi
+    else
+        if [[ -f "$p" ]]; then out="source '$p'"$'\n'
+        else
+            while IFS= read -r f; do out+="source '$f'"$'\n'
+            done < <(find "$p" -maxdepth 1 -name '*.sh' | sort | head -8)
+        fi
+    fi
+    printf '%s' "$out"
+}
+
+brief_for() { # $1=path-as-written — prints the brief
+    local p="${1/#\~/$HOME}" key fp cache text=""
+    if [[ ! -e "$p" ]]; then echo "ei: library not found: $1" >&2; return 0; fi
+    mkdir -p "$EI_LIB_DIR"
+    key=$(realpath "$p" | sha256sum | cut -c1-16)
+    cache="$EI_LIB_DIR/$key.md"
+    fp=$(fingerprint "$p")
+    if [[ -f "$cache" && "$(head -1 "$cache")" == "<!-- $fp -->" ]]; then
+        tail -n +2 "$cache"; return 0
+    fi
+    if [[ -d "$p" && "$EI_ENGINE" == pi ]]; then
+        # A repo: let pi explore it (read-only intent) and write an API brief.
+        local args=(-p --no-session --no-skills --no-context-files --thinking off --tools read,bash)
+        [[ -n "$EI_PI_MODEL" ]] && args+=(--model "$EI_PI_MODEL")
+        text=$(pi "${args[@]}" --append-system-prompt \
+            'You document a code library for a code generator. Inspect the files (read-only: list, read, grep; change nothing). Output plain markdown only: the public functions with signatures, one line of purpose each, and one short usage example.' \
+            "Document the library at: $p" || true)
+    fi
+    [[ -z "$text" ]] && text=$(grep_brief "$p")
+    { echo "<!-- $fp -->"; printf '%s\n' "$text"; } >"$cache"
+    printf '%s\n' "$text"
+}
+
+# ---------------------------------------------------------------- pass 3
+translate() { # $1=target $2=code-so-far $3=statement $4=briefs $5=outline
+    local sys="You are a strict English-to-$1 interpreter. Translate the user's statement into $1 code. Output ONLY the code: no markdown fences, no comments, no explanation. The code is appended to the script shown in the context, so build on its state (variables, imports, directory). Use only names that are in scope at the point where your code is appended; a variable local to a function does not exist at top level. The statement may be a block: a header line that ends with a colon, with an indented body. A body may contain a decision table (rows with |): translate it into the equivalent conditional logic. The user may phrase anything in any words: interpret intent, never require specific vocabulary. Prose that defines a reusable procedure, however it is worded, becomes a function; any phrase that means returning a value becomes a return."
+    [[ -n "$5" ]] && sys+=" Functions defined in this program: $5. When a statement refers to one of them, emit a call to it by that name."
+    [[ -n "$4" ]] && sys+=" The script so far already loads the libraries below; call their functions through the module name. If a value from an earlier statement is needed but was not stored in a variable, recompute it.
+
+Known libraries (API reference):
+$4"
     local user="Script so far:
 $2
 
 Statement to translate: $3"
-    jq -n --arg model "$EI_MODEL" --arg sys "$sys" --arg user "$user" \
-        '{model:$model, temperature:0, max_tokens:800,
-          messages:[{role:"system",content:$sys},{role:"user",content:$user}]}' \
-    | curl -s --max-time 120 "$EI_URL" \
-        -H "Authorization: Bearer $EI_KEY" \
-        -H "Content-Type: application/json" \
-        -d @- \
-    | jq -r '.choices[0].message.content // empty' \
-    | sed -e 's/^```[a-z]*$//' -e 's/^```$//'
+    llm "$sys" "$user" 800 | strip_fences
 }
 
-compile() { # $1=file  -> prints script on stdout
-    local file="$1" target=bash code="" line statement=""
+# ---------------------------------------------------------------- pass 4
+syntax_err() { # $1=target $2=script-file — prints the error, or nothing
+    if [[ "$1" == python ]]; then
+        python3 -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())' "$2" 2>&1 >/dev/null || true
+    else
+        bash -n "$2" 2>&1 || true
+    fi
+}
 
-    emit() { # translate the accumulated statement (may be a multi-line block)
-        [[ -z "$statement" ]] && return
-        echo "ei: ${statement%%$'\n'*}" >&2
-        local block src
-        block=$(translate "$target" "$code" "$statement")
-        [[ -z "$block" ]] && { echo "ei: translation failed: $statement" >&2; exit 1; }
-        src=$(sed 's/^/# /' <<<"$statement")
-        code+="$src"$'\n'"$block"$'\n\n'
-        statement=""
-    }
+check_repair() { # $1=target $2=script-text — prints the (repaired) script
+    local tmp err fixed
+    tmp=$(mktemp /tmp/ei-check.XXXXXX)
+    printf '%s\n' "$2" >"$tmp"
+    err=$(syntax_err "$1" "$tmp")
+    if [[ -z "$err" ]]; then rm -f "$tmp"; printf '%s' "$2"; return 0; fi
+    echo "ei: syntax check failed; attempting one repair" >&2
+    fixed=$(llm "You repair a generated $1 script. Output ONLY the full corrected script: no fences, no explanation. Keep all comments." \
+"Script:
+$2
 
+Syntax error:
+$err" 4000 | strip_fences)
+    if [[ -n "$fixed" ]]; then
+        printf '%s\n' "$fixed" >"$tmp"
+        err=$(syntax_err "$1" "$tmp")
+        if [[ -z "$err" ]]; then rm -f "$tmp"; printf '%s' "$fixed"; return 0; fi
+    fi
+    echo "ei: repair failed; the script keeps its visible error:" >&2
+    sed 's/^/ei:   /' <<<"$err" >&2
+    rm -f "$tmp"; printf '%s' "$2"
+}
+
+# ---------------------------------------------------------------- compile
+compile() { # $1=file — prints the script on stdout
+    local file="$1" target explicit=""
+
+    survey "$file"
+
+    # pass 0: parse into units (c=comment, s=statement) with line numbers
+    local -a UT=() UX=() UL=()
+    local line lineno=0 stmt="" stmt_line=0 open=0
+    flush() { [[ -z "$stmt" ]] && return 0; UT+=(s); UX+=("$stmt"); UL+=("$stmt_line"); stmt=""; }
     while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ "$line" =~ ^@target[[:space:]]+(python|bash)$ ]]; then
-            target="${BASH_REMATCH[1]}"; continue
-        fi
-        if [[ "$line" =~ ^[[:space:]]*#$ || "$line" =~ ^#[[:space:]] || "$line" == "#"* && ! "$line" =~ ^[[:space:]] ]]; then
-            emit; code+="$line"$'\n'; continue
-        fi
-        if [[ -z "${line// /}" ]]; then
-            continue
-        fi
-        if [[ "$line" =~ ^[[:space:]] ]]; then
-            # indented: belongs to the open block
-            statement+=$'\n'"$line"; continue
-        fi
-        if [[ "$line" == *'\' ]]; then
-            emit_pending=1; statement+="${line%\\} "; continue
-        fi
-        # a new top-level statement closes the previous one
-        [[ "$statement" == *' ' ]] || emit
-        statement+="$line"
-        # a line that ends with ':' opens a block; wait for the body
-        [[ "$line" == *: ]] || { [[ "$statement" == *' ' ]] || emit; }
+        lineno=$((lineno+1))
+        (( lineno <= S_PRE )) && continue
+        if [[ "$line" =~ ^@target[[:space:]]+([a-z]+) ]]; then explicit="${BASH_REMATCH[1]}"; continue; fi
+        if [[ "$line" == '#'* ]]; then flush; open=0; UT+=(c); UX+=("$line"); UL+=("$lineno"); continue; fi
+        [[ -z "${line// /}" ]] && continue
+        if [[ "$line" =~ ^[[:space:]] ]]; then stmt+=$'\n'"$line"; continue; fi   # block body
+        if (( ! open )); then flush; stmt_line=$lineno; fi
+        open=0
+        if [[ "$line" == *'\' ]]; then stmt+="${line%\\} "; open=1; continue; fi
+        stmt+="$line"
     done < "$file"
-    emit
-    local shebang="#!/usr/bin/env bash"
+    flush
+
+    target="${explicit:-$S_TARGET}"
+    [[ "$target" == python || "$target" == bash ]] || target=bash
+
+    # pass 2: briefs + a deterministic load prelude (the compiler, not the
+    # model, makes the libraries available)
+    local briefs="" prelude="" u
+    if ((${#S_USES[@]})); then
+        [[ "$target" == python ]] && prelude="import sys"$'\n'
+        for u in "${S_USES[@]}"; do
+            echo "ei: library: $u" >&2
+            briefs+=$'\n'"$(brief_for "$u")"$'\n'
+            prelude+=$(prelude_for "$target" "$u")
+        done
+        [[ -n "$prelude" ]] && prelude="# libraries"$'\n'"$prelude"$'\n'
+    fi
+    local outline=""
+    ((${#S_DEF_NAMES[@]})) && outline=$(IFS=', '; echo "${S_DEF_NAMES[*]}")
+    echo "ei: target=$target libraries=${#S_USES[@]} definitions=${outline:-none}" >&2
+
+    # hoist: definitions surveyed anywhere in the file translate and emit first
+    local -a HOIST=() order=()
+    local i dl
+    for ((i=0; i<${#UT[@]}; i++)); do HOIST[i]=0; done
+    if ((${#S_DEF_LINES[@]})); then
+        for dl in "${S_DEF_LINES[@]}"; do
+            for ((i=0; i<${#UT[@]}; i++)); do
+                [[ "${UT[i]}" == s && "${UL[i]}" == "$dl" ]] && HOIST[i]=1
+            done
+        done
+    fi
+    for ((i=0; i<${#UT[@]}; i++)); do (( HOIST[i] )) && order+=("$i"); done
+    for ((i=0; i<${#UT[@]}; i++)); do (( HOIST[i] )) || order+=("$i"); done
+
+    # pass 3: translate in hoisted order; earlier code is context for later
+    local code="$prelude" st block src
+    if ((${#order[@]})); then
+        for i in "${order[@]}"; do
+            if [[ "${UT[i]}" == c ]]; then code+="${UX[i]}"$'\n'; continue; fi
+            st="${UX[i]}"
+            echo "ei: ${st%%$'\n'*}" >&2
+            block=$(translate "$target" "$code" "$st" "$briefs" "$outline")
+            [[ -z "$block" ]] && { echo "ei: translation failed: ${st%%$'\n'*}" >&2; exit 1; }
+            src=$(sed 's/^/# /' <<<"$st")
+            code+="$src"$'\n'"$block"$'\n\n'
+        done
+    fi
+
+    # assemble: shebang, preamble as comments, code; then pass 4 check
+    local shebang="#!/usr/bin/env bash" pre="" script
     [[ "$target" == python ]] && shebang="#!/usr/bin/env python3"
-    printf '%s\n# generated by ei from %s\n\n%s' "$shebang" "$file" "$code"
-    echo "__EI_TARGET__=$target" >/dev/null
-    EI_TARGET="$target"
+    if (( S_PRE > 0 )); then pre=$(head -n "$S_PRE" "$file" | sed 's/^/# /')$'\n\n'; fi
+    script=$(printf '%s\n# generated by ei from %s\n\n%s%s' "$shebang" "$file" "$pre" "$code")
+    check_repair "$target" "$script"
+    echo
+}
+
+# Merge the per-session history logs (bash + R) with IPython's sqlite history.
+# Output: <iso-time>  <session>  <command>, sorted by time.
+history_merged() { # $1=optional session filter (e.g. bash.1234)
+    local filter="${1:-}" dir="${EI_HIST_DIR:-$HOME/.ei/history}"
+    local ipy="$HOME/.ipython/profile_default/history.sqlite"
+    {
+        [[ -d "$dir" ]] && cat "$dir"/*.log 2>/dev/null
+        if [[ -f "$ipy" ]] && command -v sqlite3 >/dev/null; then
+            # per-line timestamps do not exist; use the session start time
+            sqlite3 -separator $'\t' "$ipy" \
+                "SELECT CAST(strftime('%s', s.start) AS INTEGER),
+                        'ipython.' || h.session, replace(h.source, char(10), '\n')
+                 FROM history h JOIN sessions s ON h.session = s.session
+                 ORDER BY h.session, h.line;" 2>/dev/null
+        fi
+    } \
+    | { [[ -n "$filter" ]] && awk -F'\t' -v f="$filter" '$2 == f' || cat; } \
+    | sort -s -t$'\t' -k1,1n \
+    | awk -F'\t' '{ cmd=$3; for(i=4;i<=NF;i++) cmd=cmd"\t"$i;
+                    printf "%s  %-18s  %s\n", strftime("%F %T", $1), $2, cmd }'
 }
 
 cmd="${1:-}"; file="${2:-}"
+# The TypeScript core is shared with the VS Code extension. Use it when built
+# so CLI and editor pins, AST facts, hashes, graphs, and locked builds agree.
+core_cli="$EI_DIR/vscode-ei/out/cli.js"
+if [[ -f "$core_cli" && ( "$cmd" == compile || "$cmd" == run || "$cmd" == locked || "$cmd" == graph || "$cmd" == test || "$cmd" == debug || "$cmd" == lint ) ]]; then
+    exec node "$core_cli" "$@"
+fi
+if [[ "$cmd" == history ]]; then
+    filter=""
+    [[ "${2:-}" == "-s" && -n "${3:-}" ]] && filter="$3"
+    history_merged "$filter"
+    exit 0
+fi
 [[ -z "$cmd" || -z "$file" ]] && usage
 [[ ! -f "$file" ]] && { echo "ei: no such file: $file" >&2; exit 1; }
 
@@ -97,7 +354,6 @@ case "$cmd" in
     run)
         tmp=$(mktemp /tmp/ei-run.XXXXXX)
         trap 'rm -f "$tmp"' EXIT
-        EI_TARGET=""
         compile "$file" > "$tmp"
         if head -1 "$tmp" | grep -q python; then
             python3 "$tmp"

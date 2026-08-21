@@ -13,6 +13,19 @@
 .ei$guard <- Sys.getenv("EI_GUARD", "1") == "1"
 .ei$log   <- character()   # rolling history of inputs and outputs
 
+# Per-session, per-line history log, shared format with ei-bash.sh.
+# Format: <epoch>\t<repl>.<pid>\t<line>   (newlines encoded as \n)
+# Merge all sessions with:  ei history
+.ei$histdir <- Sys.getenv("EI_HIST_DIR", file.path(Sys.getenv("HOME"), ".ei", "history"))
+dir.create(.ei$histdir, recursive = TRUE, showWarnings = FALSE)
+.ei$histfile <- file.path(.ei$histdir,
+  sprintf("r.%d.%d.log", as.integer(Sys.time()), Sys.getpid()))
+.ei$histlog <- function(line) {
+  entry <- sprintf("%d\tr.%d\t%s\n", as.integer(Sys.time()), Sys.getpid(),
+                   gsub("\n", "\\\\n", line))
+  try(cat(entry, file = .ei$histfile, append = TRUE), silent = TRUE)
+}
+
 .ei$sys <- paste(
   "You are a strict English-to-R interpreter inside a live interactive R",
   "session. Translate the user's statement into R code. Output ONLY the",
@@ -110,6 +123,7 @@ ei_repl <- function() {
       if (!inherits(parsed, "error")) {
         buf <- character()
         .ei$log <- c(.ei$log, paste0("> ", src))
+        .ei$histlog(src)
         tryCatch(.ei$run(src), error = function(e)
           message("Error: ", conditionMessage(e)))
         next
@@ -121,6 +135,7 @@ ei_repl <- function() {
     intent <- sub("^\\s*,\\s*", "", src)
     intent <- gsub('^"|"$', "", intent)
     .ei$log <- c(.ei$log, paste0("> ", intent))
+    .ei$histlog(paste0(", ", intent))
     code <- tryCatch(.ei$translate(intent), error = function(e) "")
     if (!nzchar(code)) { message("ei: translation failed"); next }
     cat("\033[2m= ", gsub("\n", "\n= ", code), "\033[0m\n", sep = "")
