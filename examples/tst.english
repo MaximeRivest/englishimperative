@@ -1,0 +1,6 @@
+this file is a R script that does some data analytics and vizualisation
+
+if ggplot2 is not install, install ggplot2
+if dplyr is not install, install dplyr
+
+load the csv in the spendreport folder (it's)

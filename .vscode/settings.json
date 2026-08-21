@@ -1,0 +1,6 @@
+{
+    "files.exclude": {
+        "**/*.eic.json": true,
+        "**/.ei-build": true
+    }
+}

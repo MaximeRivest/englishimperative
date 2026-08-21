@@ -1,0 +1,283 @@
+{
+ "version": 2,
+ "translations": {
+  "473e5185e4a7e751c71867944057cb25": {
+   "code": "if not install:\n    install_ggplot2()",
+   "stmt": "if not install, install ggplot2",
+   "at": 1787354714314
+  },
+  "252eb942a6fa03a1ae398034059b1654": {
+   "code": "if not install:\n    install_dplyr()",
+   "stmt": "if not install, install dplyr",
+   "at": 1787354714858
+  },
+  "d40816e637542afca288eec5fe3d10e2": {
+   "code": "import pandas as pd\nspendreport = pd.read_csv('spendreport.csv')",
+   "stmt": "load the csv in spendreport",
+   "at": 1787354715716
+  },
+  "16648566fa3afafc31ea53e20aaed670": {
+   "code": "import pandas as pd\ndf = pd.read_csv('spendreport.csv')",
+   "stmt": "load the csv in the spendreport folder (it's)",
+   "at": 1787354734408
+  },
+  "9db2ac1102fe8aa70b9ef8e2cb2d6bf8": {
+   "code": "if not install:\n    install_ggplot2()",
+   "stmt": "if not install, install ggplot2",
+   "at": 1787354812364
+  },
+  "4481f3073530d491387a78adc50fcbcb": {
+   "code": "import importlib.util\nif importlib.util.find_spec(\"ggplot2\") is None:\n    import subprocess\n    subprocess.run([\"pip\", \"install\", \"ggplot2\"], check=True)",
+   "stmt": "if ggplot2 is not install, install ggplot2",
+   "at": 1787354844866
+  },
+  "c1e9c0b9ad987a0ede7bf76a6b998983": {
+   "code": "if importlib.util.find_spec(\"dplyr\") is None:\n    import subprocess\n    subprocess.run([\"pip\", \"install\", \"dplyr\"], check=True)",
+   "stmt": "if dplyr isnot install, install dplyr",
+   "at": 1787354843103
+  },
+  "715715a8c7421d50e7dd6f851546f733": {
+   "code": "import pandas as pd\ndf = pd.read_csv(\"spendreport.csv\")",
+   "stmt": "load the csv in the spendreport folder (it's)",
+   "at": 1787354845570
+  },
+  "f54e4e84e572fdad4e28faef7af56111": {
+   "code": "import importlib.util\nif importlib.util.find_spec(\"dplyr\") is None:\n    import subprocess\n    subprocess.run([\"pip\", \"install\", \"dplyr\"], check=True)",
+   "stmt": "if dplyr is not install, install dplyr",
+   "at": 1787354875768
+  },
+  "2efa04f11701476d5359a8843fe547aa": {
+   "code": "import pandas as pd\ndf = pd.read_csv(\"spendreport.csv\")",
+   "stmt": "load the csv in the spendreport folder (it's)",
+   "at": 1787354877101
+  }
+ },
+ "pins": {
+  "233d188ca6aa0b62953172b9": {
+   "code": "if not install:\n    install_ggplot2()",
+   "stmt": "if not install, install ggplot2",
+   "at": 1787354812365,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "fd7dbd67e06f07840c1c6df1": {
+   "code": "if not install:\n    install_dplyr()",
+   "stmt": "if not install, install dplyr",
+   "at": 1787354714858,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "02ea0ebde86da709d7202e08": {
+   "code": "import pandas as pd\nspendreport = pd.read_csv('spendreport.csv')",
+   "stmt": "load the csv in spendreport",
+   "at": 1787354715716,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "b5f666df26d2a0b0bba752dc": {
+   "code": "if importlib.util.find_spec(\"dplyr\") is None:\n    import subprocess\n    subprocess.run([\"pip\", \"install\", \"dplyr\"], check=True)",
+   "stmt": "if dplyr isnot install, install dplyr",
+   "at": 1787354843103,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-4370d8ade27b229b": "d14984cbca067331bb911e11"
+   }
+  },
+  "dec627d42556879708d9938d": {
+   "code": "import importlib.util\nif importlib.util.find_spec(\"ggplot2\") is None:\n    import subprocess\n    subprocess.run([\"pip\", \"install\", \"ggplot2\"], check=True)",
+   "stmt": "if ggplot2 is not install, install ggplot2",
+   "at": 1787355164170,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "29d5498a53e018088a2df359": {
+   "code": "import importlib.util\nif importlib.util.find_spec(\"dplyr\") is None:\n    import subprocess\n    subprocess.run([\"pip\", \"install\", \"dplyr\"], check=True)",
+   "stmt": "if dplyr is not install, install dplyr",
+   "at": 1787355164170,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-4370d8ade27b229b": "d14984cbca067331bb911e11"
+   }
+  },
+  "27c28e4a2fee97e2725d0c00": {
+   "code": "import pandas as pd\ndf = pd.read_csv(\"spendreport.csv\")",
+   "stmt": "load the csv in the spendreport folder (it's)",
+   "at": 1787355164170,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-ce36b3cbe907a134": "d14984cbca067331bb911e11"
+   }
+  }
+ },
+ "survey": {
+  "key": "a42d60d6a122820df6e878b7",
+  "value": {
+   "language": "English",
+   "target": "python",
+   "preambleEnd": 1,
+   "uses": [
+    "spendreport"
+   ],
+   "definitions": [],
+   "examples": []
+  }
+ },
+ "lint": {
+  "key": "a42d60d6a122820df6e878b7",
+  "value": [
+   {
+    "line": 2,
+    "endLine": 2,
+    "message": "The condition 'is not install' is ambiguous: it is unclear if this refers to the package not being installed in the current session, not being available in the library, or not being installed on the system."
+   },
+   {
+    "line": 3,
+    "endLine": 3,
+    "message": "The condition 'is not install' is ambiguous: it is unclear if this refers to the package not being installed in the current session, not being available in the library, or not being installed on the system."
+   },
+   {
+    "line": 5,
+    "endLine": 5,
+    "message": "The file to load is ambiguous: 'the csv' does not specify which file if there are multiple CSVs in the 'spendreport' folder."
+   },
+   {
+    "line": 5,
+    "endLine": 5,
+    "message": "The instruction is incomplete: the sentence ends with '(it's)' and does not specify what to do with the loaded data (e.g., assign to a variable, clean, etc.)."
+   }
+  ]
+ },
+ "graph": {
+  "version": 1,
+  "target": "python",
+  "engineId": "http:qwen/qwen3.8-27b",
+  "briefsHash": "75a11da44c802486",
+  "sourceHash": "dde0d64e54a09f874cdfd66e",
+  "builtAt": 1787355164298,
+  "nodes": [
+   {
+    "id": "n-4370d8ade27b229b",
+    "ordinal": 0,
+    "stmtKey": "dec627d42556879708d9938d",
+    "stmt": "if ggplot2 is not install, install ggplot2",
+    "startLine": 2,
+    "endLine": 2,
+    "sourceHash": "dec627d42556879708d9938d",
+    "implementationHash": "15806485b7f101301380753c",
+    "interfaceHash": "d14984cbca067331bb911e11",
+    "facts": {
+     "defines": [
+      "importlib",
+      "subprocess"
+     ],
+     "reads": [
+      "importlib",
+      "subprocess"
+     ],
+     "calls": [
+      "importlib.util.find_spec",
+      "subprocess.run"
+     ],
+     "imports": [
+      "importlib.util",
+      "subprocess"
+     ],
+     "functions": [],
+     "classes": [],
+     "effects": [
+      "starts_process"
+     ],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-ce36b3cbe907a134",
+    "ordinal": 1,
+    "stmtKey": "29d5498a53e018088a2df359",
+    "stmt": "if dplyr is not install, install dplyr",
+    "startLine": 3,
+    "endLine": 3,
+    "sourceHash": "29d5498a53e018088a2df359",
+    "implementationHash": "9df7e6955c0c7b6eac5244ef",
+    "interfaceHash": "d14984cbca067331bb911e11",
+    "facts": {
+     "defines": [
+      "importlib",
+      "subprocess"
+     ],
+     "reads": [
+      "importlib",
+      "subprocess"
+     ],
+     "calls": [
+      "importlib.util.find_spec",
+      "subprocess.run"
+     ],
+     "imports": [
+      "importlib.util",
+      "subprocess"
+     ],
+     "functions": [],
+     "classes": [],
+     "effects": [
+      "starts_process"
+     ],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-4370d8ade27b229b",
+      "symbols": [
+       "importlib",
+       "subprocess"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "9b414416aec1f3c06cbc6acd"
+   },
+   {
+    "id": "n-4c3ab7cc6c63996b",
+    "ordinal": 2,
+    "stmtKey": "27c28e4a2fee97e2725d0c00",
+    "stmt": "load the csv in the spendreport folder (it's)",
+    "startLine": 5,
+    "endLine": 5,
+    "sourceHash": "27c28e4a2fee97e2725d0c00",
+    "implementationHash": "d496c0dc63f2181a1f0cb2d3",
+    "interfaceHash": "397ff60517db6934c7964c53",
+    "facts": {
+     "defines": [
+      "df",
+      "pd"
+     ],
+     "reads": [
+      "pd"
+     ],
+     "calls": [
+      "pd.read_csv"
+     ],
+     "imports": [
+      "pandas"
+     ],
+     "functions": [],
+     "classes": [],
+     "effects": [
+      "reads_files"
+     ],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-ce36b3cbe907a134",
+      "symbols": [],
+      "kind": "effect"
+     }
+    ],
+    "dependencyInterfaceHash": "237eab3690fea25c445f04a1"
+   }
+  ]
+ }
+}
