@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "English Imperative",
+  "scopeName": "source.ei",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#directive" },
+    { "include": "#tableRow" },
+    { "include": "#blockHeader" },
+    { "include": "#string" },
+    { "include": "#path" },
+    { "include": "#number" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "^\\s*#.*$",
+      "name": "comment.line.number-sign.ei"
+    },
+    "directive": {
+      "match": "^@\\w+.*$",
+      "name": "keyword.control.directive.ei"
+    },
+    "blockHeader": {
+      "match": "^([^#\\s].*)(:)\\s*$",
+      "captures": {
+        "1": { "name": "markup.heading.ei entity.name.function.ei" },
+        "2": { "name": "punctuation.separator.block.ei" }
+      }
+    },
+    "tableRow": {
+      "match": "^\\s+.*\\|.*$",
+      "name": "meta.table.ei",
+      "captures": { "0": { "name": "markup.list.table.ei" } }
+    },
+    "string": {
+      "patterns": [
+        { "match": "\"[^\"]*\"", "name": "string.quoted.double.ei" },
+        { "match": "'[^']*'", "name": "string.quoted.single.ei" }
+      ]
+    },
+    "path": {
+      "match": "(~|\\.{0,2})/[A-Za-z0-9_./-]+",
+      "name": "string.unquoted.path.ei constant.other.path.ei"
+    },
+    "number": {
+      "match": "\\b[0-9]+(\\.[0-9]+)?\\b",
+      "name": "constant.numeric.ei"
+    }
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "name": "english-imperative",
+  "displayName": "English Imperative",
+  "description": "Program in natural language: .ei files compile to Bash or Python through a model engine.",
+  "version": "0.1.0",
+  "publisher": "maxime",
+  "license": "MIT",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Programming Languages"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ei",
+        "aliases": ["English Imperative", "ei"],
+        "extensions": [
+          ".ei",
+          ".english", ".french", ".francais", ".spanish", ".espanol", ".castellano",
+          ".german", ".deutsch", ".italian", ".italiano", ".portuguese", ".portugues",
+          ".dutch", ".nederlands", ".swedish", ".svenska", ".danish", ".dansk",
+          ".norwegian", ".norsk", ".finnish", ".suomi", ".polish", ".polski",
+          ".czech", ".cestina", ".slovak", ".russian", ".ukrainian", ".greek",
+          ".turkish", ".turkce", ".arabic", ".hebrew", ".persian", ".farsi",
+          ".hindi", ".bengali", ".japanese", ".nihongo", ".korean", ".chinese",
+          ".zhongwen", ".vietnamese", ".thai", ".romanian", ".hungarian", ".magyar",
+          ".catalan", ".indonesian", ".swahili",
+          ".en", ".fr", ".de", ".it", ".pt", ".nl", ".sv", ".da", ".fi", ".cs",
+          ".sk", ".ru", ".uk", ".el", ".tr", ".ar", ".he", ".fa", ".hi", ".bn",
+          ".ja", ".ko", ".zh", ".vi", ".th", ".ro", ".hu", ".ca", ".id", ".sw"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ei",
+        "scopeName": "source.ei",
+        "path": "./syntaxes/ei.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      { "command": "ei.compile", "title": "EI: Compile", "icon": "$(gear)" },
+      { "command": "ei.run", "title": "EI: Run", "icon": "$(play)" },
+      { "command": "ei.showCompiled", "title": "EI: Show Compiled Code" },
+      { "command": "ei.compileToFile", "title": "EI: Compile To File" },
+      { "command": "ei.retranslateStatement", "title": "EI: Retranslate Statement" },
+      { "command": "ei.pinStatement", "title": "EI: Pin Statement Translation" },
+      { "command": "ei.unpinStatement", "title": "EI: Unpin Statement Translation" },
+      { "command": "ei.selectEngine", "title": "EI: Select Engine And Model" },
+      { "command": "ei.rebuildBriefs", "title": "EI: Rebuild Library Briefs" },
+      { "command": "ei.clearCache", "title": "EI: Clear Translation Cache" },
+      { "command": "ei.lockedBuild", "title": "EI: Locked Build (No Model Calls)" },
+      { "command": "ei.showDependencyGraph", "title": "EI: Show Dependency Graph" },
+      { "command": "ei.acceptPinDependencies", "title": "EI: Accept Pinned Dependency Changes" },
+      { "command": "ei.runTests", "title": "EI: Run Example Tests" },
+      { "command": "ei.debug", "title": "EI: Debug (Step Through English)" },
+      { "command": "ei.sendToRepl", "title": "EI: Send Statement To REPL" },
+      { "command": "ei.replReset", "title": "EI: Restart REPL Session" }
+    ],
+    "keybindings": [
+      {
+        "command": "ei.sendToRepl",
+        "key": "shift+enter",
+        "when": "editorTextFocus && editorLangId == 'ei'"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        { "command": "ei.run", "when": "editorLangId == ei", "group": "navigation@1" },
+        { "command": "ei.compile", "when": "editorLangId == ei", "group": "navigation@2" }
+      ],
+      "commandPalette": [
+        { "command": "ei.compile", "when": "editorLangId == ei" },
+        { "command": "ei.run", "when": "editorLangId == ei" },
+        { "command": "ei.showCompiled", "when": "editorLangId == ei" },
+        { "command": "ei.compileToFile", "when": "editorLangId == ei" },
+        { "command": "ei.retranslateStatement", "when": "editorLangId == ei" },
+        { "command": "ei.pinStatement", "when": "editorLangId == ei" },
+        { "command": "ei.unpinStatement", "when": "editorLangId == ei" },
+        { "command": "ei.rebuildBriefs", "when": "editorLangId == ei" },
+        { "command": "ei.clearCache", "when": "editorLangId == ei" },
+        { "command": "ei.lockedBuild", "when": "editorLangId == ei" },
+        { "command": "ei.showDependencyGraph", "when": "editorLangId == ei" },
+        { "command": "ei.acceptPinDependencies", "when": "editorLangId == ei" },
+        { "command": "ei.runTests", "when": "editorLangId == ei" },
+        { "command": "ei.debug", "when": "editorLangId == ei" },
+        { "command": "ei.sendToRepl", "when": "editorLangId == ei" },
+        { "command": "ei.replReset", "when": "editorLangId == ei" }
+      ]
+    },
+    "configuration": {
+      "title": "English Imperative",
+      "properties": {
+        "ei.engine": {
+          "type": "string",
+          "enum": ["http", "pi"],
+          "default": "http",
+          "description": "Translation engine: an OpenAI-compatible endpoint (http) or the pi CLI (pi)."
+        },
+        "ei.http.url": {
+          "type": "string",
+          "default": "http://192.168.2.24:8000/v1/chat/completions",
+          "description": "OpenAI-compatible chat completions URL."
+        },
+        "ei.http.apiKey": {
+          "type": "string",
+          "default": "inktype-local",
+          "description": "Bearer token for the http engine."
+        },
+        "ei.http.model": {
+          "type": "string",
+          "default": "qwen/qwen3.8-27b",
+          "description": "Model id for the http engine."
+        },
+        "ei.pi.model": {
+          "type": "string",
+          "default": "",
+          "description": "pi model as provider/id (empty = pi default)."
+        },
+        "ei.pi.modeFile": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a pi prompt-mode JSON file (empty = auto-detect ei-mode.json)."
+        },
+        "ei.lint": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the ambiguity linter (one cached model pass) during development compiles."
+        },
+        "ei.tidyExplorer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Hide generated files (.eic.json sidecars and .ei-build folders) from the Explorer. Your prose stays alone."
+        },
+        "ei.wordWrap": {
+          "type": "boolean",
+          "default": true,
+          "description": "Wrap long English lines like a document (word wrap for .ei files only)."
+        },
+        "ei.pinByDefault": {
+          "type": "boolean",
+          "default": true,
+          "description": "Pin each successful first translation. Code stays unchanged until you explicitly retranslate or unpin it."
+        },
+        "ei.compileOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Compile the .ei file when you save it."
+        },
+        "ei.ghostCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the first line of generated code after each statement."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "test": "npm run build && node test/semantic.mjs && node test/run.mjs && node test/features.mjs && node test/language.mjs && node test/repl.mjs && node test/replhost.mjs",
+    "test:pi": "npm run build && EI_TEST_ENGINE=pi EI_TEST_PI_MODEL=homelab/qwen/qwen3.8-27b node test/run.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}
