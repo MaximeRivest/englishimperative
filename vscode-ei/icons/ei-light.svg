@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-  <text x="8" y="12" font-family="Georgia, 'Times New Roman', serif" font-size="10"
-        font-weight="700" text-anchor="middle" fill="#4A6DA7">EN</text>
+  <g fill="none" stroke="#4A6DA7" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M6.2 3.2 H2.2 V12.8 H6.2 M2.2 8 H5.6"/>
+    <path d="M9.2 12.8 V3.2 L13.8 12.8 V3.2"/>
+  </g>
 </svg>
