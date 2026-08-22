@@ -1,6 +1,20 @@
-this file is a R script that does some data analytics and vizualisation
+this is R
 
-if ggplot2 is not install, install ggplot2
-if dplyr is not install, install dplyr
+if ggplot2 is not installed:
+    install ggplot2
+load the ggplot2 library
+if dplyr is not installed:
+    install dplyr
+load the dplyr library
 
-load the csv in the spendreport folder (it's)
+
+from this working directory, recursively, list all files that have a .csv extension and store in csv_files
+
+print csv_files list
+read the first file in csv_files into a data frame called df
+
+df
+
+make a barplot from df with date as x and amount as y save to p
+
+take p and write as a png in cwd

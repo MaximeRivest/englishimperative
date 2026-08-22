@@ -50,6 +50,126 @@
    "code": "import pandas as pd\ndf = pd.read_csv(\"spendreport.csv\")",
    "stmt": "load the csv in the spendreport folder (it's)",
    "at": 1787354877101
+  },
+  "8d846dbd1e03e5df0100f6ea7def1171": {
+   "code": "#!/bin/bash",
+   "stmt": "this is a bash script",
+   "at": 1787356062266
+  },
+  "43149ec995c9f1d084e4d537a90f4aee": {
+   "code": "a=$(ls)",
+   "stmt": "list files store in variable a",
+   "at": 1787356062580
+  },
+  "077c579c20f505812bf1dd0f7101ad7c": {
+   "code": "z=0",
+   "stmt": "start z at 0",
+   "at": 1787356062892
+  },
+  "a885cf3b3ff74992ca4c1d041507abcc": {
+   "code": "for i in $a; do\n    b=$(echo \"$i\" | sed 's/.*\\///; s/\\.[^.]*$//')\n    c=${#b}\n    z=$((z + c))\ndone",
+   "stmt": "for i in all files in a:\n    take i and grab only the text after the last slash and before the last dot, store in b\n    count the lenght of b and store its value in c\n    take z add it to c and stor in z",
+   "at": 1787356064225
+  },
+  "4824611e117dcc4a92555945fb3eaca9": {
+   "code": "echo \"$z\"",
+   "stmt": "print z",
+   "at": 1787356097311
+  },
+  "c274772ec644fc28b04a37526340d3a9": {
+   "code": "for i in a/*; do\n    b=$(basename \"$i\" | sed 's/\\.[^.]*$//')\n    c=${#b}\n    z=$((z + c))\n    echo \"$i\"\n    echo \"$z\"\ndone",
+   "stmt": "for i in all files in a:\n    print i\n    take i and grab only the text after the last slash and before the last dot, store in b\n    count the lenght of b and store its value in c\n    take z add it to c and stor in z\n    print z",
+   "at": 1787356115856
+  },
+  "eead4110a1ff02672395085c9efa2a10": {
+   "code": "for i in $a; do\n    echo \"$i\"\n    b=$(echo \"$i\" | rev | cut -d'.' -f2 | rev | cut -d'/' -f1)\n    c=${#b}\n    z=$((z + c))\n    echo \"$z\"\ndone",
+   "stmt": "for i in all files in a:\n    print i\n    take i and grab only the text after the last slash and before the last dot, store in b\n    count the lenght of b and store its value in c\n    take z add it to c and stor in z\n    print z",
+   "at": 1787356124687
+  },
+  "8fcb54d08c7a6e0bec4b7c65955e7706": {
+   "code": "ls = list_files_reverse_recency",
+   "stmt": "ls = list the files in reverse order of recency",
+   "at": 1787357056394
+  },
+  "7078aa11449d08f97999603879492848": {
+   "code": "myls() {\n    ls -t\n}",
+   "stmt": "myls = list the files in reverse order of recency",
+   "at": 1787357074316
+  },
+  "ee0b3e3da1ab9f256be52cb8724c3108": {
+   "code": "myls",
+   "stmt": "print myls",
+   "at": 1787357096313
+  },
+  "3cc199a50256417626e4eec0b941a9e0": {
+   "code": "cat(\"this is R\\n\")",
+   "stmt": "this is R",
+   "at": 1787357991953
+  },
+  "89f2a4abbe0cf800764c5c95662b7946": {
+   "code": "if (!requireNamespace(\"ggplot2\", quietly = TRUE)) {\n  install.packages(\"ggplot2\")\n}",
+   "stmt": "if ggplot2 is not installed:\n    install ggplot2",
+   "at": 1787357992745
+  },
+  "354db5e8a623f6051e3a9e0579d754de": {
+   "code": "if (!requireNamespace(\"dplyr\", quietly = TRUE)) {\n  install.packages(\"dplyr\")\n}",
+   "stmt": "if dplyr is not installed:\n    install dplyr",
+   "at": 1787357993574
+  },
+  "030f6bbb520e363b54e5db718f7698cb": {
+   "code": "csv_files <- list.files(pattern = \"\\\\.csv$\")",
+   "stmt": "from this working directory, list all files that have a .csv extension and stor in csv_files",
+   "at": 1787357994135
+  },
+  "377ac87ff37a275b9ab1088da34414d6": {
+   "code": "df <- read.csv(csv_files[1])",
+   "stmt": "read the first file in csv_files into a data frame called df",
+   "at": 1787357994675
+  },
+  "7dbf1e9f8959b3f07acdf2994eca45ac": {
+   "code": "print(df)",
+   "stmt": "df",
+   "at": 1787357995095
+  },
+  "399c57108043f6778f9257a4ef81038a": {
+   "code": "csv_files <- list.files(pattern = \"\\\\.csv$\")",
+   "stmt": "from this working directory, list all files that have a .csv extension and store in csv_files",
+   "at": 1787358074581
+  },
+  "290a776c9b106be1564df8075b3f3bb5": {
+   "code": "print(csv_files)",
+   "stmt": "print csv_files list",
+   "at": 1787358074980
+  },
+  "e2a6b7a4b601e4675aa6bee665f4112f": {
+   "code": "csv_files <- list.files(path = \".\", pattern = \"\\\\.csv$\", recursive = TRUE, full.names = TRUE)",
+   "stmt": "from this working directory, recursively, list all files that have a .csv extension and store in csv_files",
+   "at": 1787358107743
+  },
+  "6892df658eacf7cfffc720864ec79f59": {
+   "code": "library(ggplot2)\nggplot(df, aes(x = date, y = amount)) +\n  geom_bar(stat = \"identity\")",
+   "stmt": "make a barplot from df with date as x and amount as y",
+   "at": 1787358169185
+  },
+  "f9078b23e628914ee4ba11e242922969": {
+   "code": "p <- ggplot(df, aes(x = date, y = amount)) +\n  geom_bar(stat = \"identity\")",
+   "stmt": "make a barplot from df with date as x and amount as y save to p",
+   "at": 1787358211082
+  },
+  "0067ccc447f918dc6f2b23b18838713b": {
+   "code": "ggsave(\"p.png\", plot = p, device = \"png\")",
+   "stmt": "take p and write as a png in cwd",
+   "at": 1787358211855
+  },
+  "8787f13c7b9f9e18f2c796a492067f5a": {
+   "code": "library(ggplot2)",
+   "stmt": "load the ggplot2 library",
+   "at": 1787358255991
+  },
+  "cf36f2ad0c12586f4fc1bd90e01ddaef": {
+   "code": "library(dplyr)",
+   "stmt": "load the dplyr library",
+   "at": 1787358256428
   }
  },
  "pins": {
@@ -107,85 +227,312 @@
    "acceptedDependencies": {
     "n-ce36b3cbe907a134": "d14984cbca067331bb911e11"
    }
+  },
+  "610c4d467d9acd6b61c0bf25": {
+   "code": "#!/bin/bash",
+   "stmt": "this is a bash script",
+   "at": 1787356062266,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "c78a2e2430ffb1f1554fcae7": {
+   "code": "a=$(ls)",
+   "stmt": "list files store in variable a",
+   "at": 1787356062580,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "a559e22d1a816c54ddd46cc8": {
+   "code": "z=0",
+   "stmt": "start z at 0",
+   "at": 1787356062892,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "9f2fd8cd252d710674f5d487": {
+   "code": "for i in $a; do\n    b=$(echo \"$i\" | sed 's/.*\\///; s/\\.[^.]*$//')\n    c=${#b}\n    z=$((z + c))\ndone",
+   "stmt": "for i in all files in a:\n    take i and grab only the text after the last slash and before the last dot, store in b\n    count the lenght of b and store its value in c\n    take z add it to c and stor in z",
+   "at": 1787356064225,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-e6adb289e6118f3b": "6d75a74522078f64ef0dc606"
+   }
+  },
+  "ad74f8b0ba4a85f36080302d": {
+   "code": "echo \"$z\"",
+   "stmt": "print z",
+   "at": 1787356097311,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-28653811bd598524": "e29c75bc523935d06110e492"
+   }
+  },
+  "b87a6d4cb106e42fadc9ebb9": {
+   "code": "for i in $a; do\n    echo \"$i\"\n    b=$(echo \"$i\" | rev | cut -d'.' -f2 | rev | cut -d'/' -f1)\n    c=${#b}\n    z=$((z + c))\n    echo \"$z\"\ndone",
+   "stmt": "for i in all files in a:\n    print i\n    take i and grab only the text after the last slash and before the last dot, store in b\n    count the lenght of b and store its value in c\n    take z add it to c and stor in z\n    print z",
+   "at": 1787356124687,
+   "automatic": true,
+   "acceptedDependencies": {
+    "n-e6adb289e6118f3b": "6d75a74522078f64ef0dc606",
+    "n-5e0e14d9db4bf7c5": "65decf8f1ea0b5b5b461ff94"
+   }
+  },
+  "4d869710f3bd8d17cfaa3ef1": {
+   "code": "ls = list_files_reverse_recency",
+   "stmt": "ls = list the files in reverse order of recency",
+   "at": 1787357056394,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "e78bca6ac1cb1af5ef17f73b": {
+   "code": "myls() {\n    ls -t\n}",
+   "stmt": "myls = list the files in reverse order of recency",
+   "at": 1787357074316,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "0b4d5a912d129d71484952ea": {
+   "code": "myls",
+   "stmt": "print myls",
+   "at": 1787357096313,
+   "automatic": true,
+   "acceptedDependencies": {}
+  },
+  "ec62948d1cfa9be46e03c3b3": {
+   "code": "cat(\"this is R\\n\")",
+   "stmt": "this is R",
+   "at": 1787357991953,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {}
+  },
+  "279db024272967f3c6c564ee": {
+   "code": "if (!requireNamespace(\"ggplot2\", quietly = TRUE)) {\n  install.packages(\"ggplot2\")\n}",
+   "stmt": "if ggplot2 is not installed:\n    install ggplot2",
+   "at": 1787357992745,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {}
+  },
+  "af3bb2e9e1a858fd4f874bb3": {
+   "code": "if (!requireNamespace(\"dplyr\", quietly = TRUE)) {\n  install.packages(\"dplyr\")\n}",
+   "stmt": "if dplyr is not installed:\n    install dplyr",
+   "at": 1787357993574,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-588966f09413a831": "a9757aaeef752c3678e48cb7"
+   }
+  },
+  "3ef1399a76cc304726ae0a7d": {
+   "code": "csv_files <- list.files(pattern = \"\\\\.csv$\")",
+   "stmt": "from this working directory, list all files that have a .csv extension and stor in csv_files",
+   "at": 1787357994135,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-36d31b8ecc1a63fe": "a9757aaeef752c3678e48cb7"
+   }
+  },
+  "ec847289b518687dc932fb79": {
+   "code": "df <- read.csv(csv_files[1])",
+   "stmt": "read the first file in csv_files into a data frame called df",
+   "at": 1787357994675,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-214a9344c6eeb7a6": "ae0d0fdcaf83640bbecc0d7a"
+   }
+  },
+  "32c220482c68413fbf8290e3": {
+   "code": "print(df)",
+   "stmt": "df",
+   "at": 1787357995095,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-f6bc9521a4dd9483": "fc737a4a9b98cf447be07c2d"
+   }
+  },
+  "5915da2e5b2d5f1953cf8ae9": {
+   "code": "csv_files <- list.files(pattern = \"\\\\.csv$\")",
+   "stmt": "from this working directory, list all files that have a .csv extension and store in csv_files",
+   "at": 1787358074581,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-36d31b8ecc1a63fe": "a9757aaeef752c3678e48cb7"
+   }
+  },
+  "331837c2434643ba672af7c9": {
+   "code": "print(csv_files)",
+   "stmt": "print csv_files list",
+   "at": 1787358074980,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-214a9344c6eeb7a6": "ae0d0fdcaf83640bbecc0d7a"
+   }
+  },
+  "42376413e198f224600644c4": {
+   "code": "csv_files <- list.files(path = \".\", pattern = \"\\\\.csv$\", recursive = TRUE, full.names = TRUE)",
+   "stmt": "from this working directory, recursively, list all files that have a .csv extension and store in csv_files",
+   "at": 1787358107743,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-36d31b8ecc1a63fe": "a9757aaeef752c3678e48cb7"
+   }
+  },
+  "72dac0bf69e0c7f1dd459f38": {
+   "code": "library(ggplot2)\nggplot(df, aes(x = date, y = amount)) +\n  geom_bar(stat = \"identity\")",
+   "stmt": "make a barplot from df with date as x and amount as y",
+   "at": 1787358169185,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-f6bc9521a4dd9483": "fc737a4a9b98cf447be07c2d"
+   }
+  },
+  "675c365d22a9d9023a1b6b65": {
+   "code": "p <- ggplot(df, aes(x = date, y = amount)) +\n  geom_bar(stat = \"identity\")",
+   "stmt": "make a barplot from df with date as x and amount as y save to p",
+   "at": 1787358211082,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-f6bc9521a4dd9483": "fc737a4a9b98cf447be07c2d"
+   }
+  },
+  "01508d99e10fb52d9b7b1471": {
+   "code": "ggsave(\"p.png\", plot = p, device = \"png\")",
+   "stmt": "take p and write as a png in cwd",
+   "at": 1787358211856,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {
+    "n-bce68ca6718cda4b": "19f3ee58483a710c40501b87",
+    "n-f6bc9521a4dd9483": "fc737a4a9b98cf447be07c2d"
+   }
+  },
+  "68ed1cb48dcae3a3e3bace2d": {
+   "code": "library(ggplot2)",
+   "stmt": "load the ggplot2 library",
+   "at": 1787358255991,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {}
+  },
+  "484f8275c816887da57c2d56": {
+   "code": "library(dplyr)",
+   "stmt": "load the dplyr library",
+   "at": 1787358256428,
+   "automatic": true,
+   "target": "r",
+   "acceptedDependencies": {}
   }
  },
  "survey": {
-  "key": "a42d60d6a122820df6e878b7",
+  "key": "4bf71887b5b4a38120797e90",
   "value": {
    "language": "English",
-   "target": "python",
-   "preambleEnd": 1,
-   "uses": [
-    "spendreport"
-   ],
+   "target": "r",
+   "preambleEnd": 0,
+   "uses": [],
    "definitions": [],
    "examples": []
   }
  },
  "lint": {
-  "key": "a42d60d6a122820df6e878b7",
+  "key": "4bf71887b5b4a38120797e90",
   "value": [
    {
-    "line": 2,
-    "endLine": 2,
-    "message": "The condition 'is not install' is ambiguous: it is unclear if this refers to the package not being installed in the current session, not being available in the library, or not being installed on the system."
+    "line": 10,
+    "endLine": 10,
+    "message": "The scope 'this working directory' is ambiguous if the current working directory is not explicitly set or if the script is run from a different location; it is unclear if 'recursively' includes hidden directories or specific subdirectory exclusions."
    },
    {
-    "line": 3,
-    "endLine": 3,
-    "message": "The condition 'is not install' is ambiguous: it is unclear if this refers to the package not being installed in the current session, not being available in the library, or not being installed on the system."
+    "line": 13,
+    "endLine": 13,
+    "message": "The term 'first file' is ambiguous regarding the sorting order (e.g., alphabetical, by modification time, or by path depth) used to determine which file is first in the list."
    },
    {
-    "line": 5,
-    "endLine": 5,
-    "message": "The file to load is ambiguous: 'the csv' does not specify which file if there are multiple CSVs in the 'spendreport' folder."
+    "line": 17,
+    "endLine": 17,
+    "message": "The column names 'date' and 'amount' are assumed to exist in the data frame; if the CSV headers differ (e.g., 'Date' vs 'date', or 'Amount' vs 'amount'), the code will fail. Additionally, 'date' is a string in CSVs and may need conversion to a date type for proper plotting, which is not specified."
    },
    {
-    "line": 5,
-    "endLine": 5,
-    "message": "The instruction is incomplete: the sentence ends with '(it's)' and does not specify what to do with the loaded data (e.g., assign to a variable, clean, etc.)."
+    "line": 19,
+    "endLine": 19,
+    "message": "The filename for the PNG is not specified. It is unclear if it should be derived from the input CSV name, a fixed name, or a timestamp."
    }
   ]
  },
  "graph": {
   "version": 1,
-  "target": "python",
+  "target": "r",
   "engineId": "http:qwen/qwen3.8-27b",
-  "briefsHash": "75a11da44c802486",
-  "sourceHash": "dde0d64e54a09f874cdfd66e",
-  "builtAt": 1787355164298,
+  "briefsHash": "e3b0c44298fc1c14",
+  "sourceHash": "28ac6b5bcc3921ebf75675e2",
+  "builtAt": 1787358256431,
   "nodes": [
    {
-    "id": "n-4370d8ade27b229b",
+    "id": "n-83b44a50cd18bab5",
     "ordinal": 0,
-    "stmtKey": "dec627d42556879708d9938d",
-    "stmt": "if ggplot2 is not install, install ggplot2",
-    "startLine": 2,
-    "endLine": 2,
-    "sourceHash": "dec627d42556879708d9938d",
-    "implementationHash": "15806485b7f101301380753c",
-    "interfaceHash": "d14984cbca067331bb911e11",
+    "stmtKey": "ec62948d1cfa9be46e03c3b3",
+    "stmt": "this is R",
+    "startLine": 0,
+    "endLine": 0,
+    "sourceHash": "ec62948d1cfa9be46e03c3b3",
+    "implementationHash": "b459bab5bf72ecb5c2ee1ef3",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
     "facts": {
-     "defines": [
-      "importlib",
-      "subprocess"
-     ],
+     "defines": [],
      "reads": [
-      "importlib",
-      "subprocess"
+      "R",
+      "is",
+      "n",
+      "this"
      ],
      "calls": [
-      "importlib.util.find_spec",
-      "subprocess.run"
+      "cat"
      ],
-     "imports": [
-      "importlib.util",
-      "subprocess"
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-588966f09413a831",
+    "ordinal": 1,
+    "stmtKey": "279db024272967f3c6c564ee",
+    "stmt": "if ggplot2 is not installed:\n    install ggplot2",
+    "startLine": 2,
+    "endLine": 3,
+    "sourceHash": "279db024272967f3c6c564ee",
+    "implementationHash": "7e5e9d5f5b727a9293188a42",
+    "interfaceHash": "a9757aaeef752c3678e48cb7",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "ggplot2",
+      "quietly"
      ],
+     "calls": [
+      "if",
+      "install.packages",
+      "requireNamespace"
+     ],
+     "imports": [],
      "functions": [],
      "classes": [],
      "effects": [
-      "starts_process"
+      "starts_process",
+      "uses_network"
      ],
      "dynamic": false
     },
@@ -193,75 +540,124 @@
     "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
    },
    {
-    "id": "n-ce36b3cbe907a134",
-    "ordinal": 1,
-    "stmtKey": "29d5498a53e018088a2df359",
-    "stmt": "if dplyr is not install, install dplyr",
-    "startLine": 3,
-    "endLine": 3,
-    "sourceHash": "29d5498a53e018088a2df359",
-    "implementationHash": "9df7e6955c0c7b6eac5244ef",
-    "interfaceHash": "d14984cbca067331bb911e11",
+    "id": "n-5e5f58ee7f037c21",
+    "ordinal": 2,
+    "stmtKey": "68ed1cb48dcae3a3e3bace2d",
+    "stmt": "load the ggplot2 library",
+    "startLine": 4,
+    "endLine": 4,
+    "sourceHash": "68ed1cb48dcae3a3e3bace2d",
+    "implementationHash": "959c055508cd14015dbd5c03",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
     "facts": {
-     "defines": [
-      "importlib",
-      "subprocess"
-     ],
-     "reads": [
-      "importlib",
-      "subprocess"
-     ],
+     "defines": [],
+     "reads": [],
      "calls": [
-      "importlib.util.find_spec",
-      "subprocess.run"
+      "library"
      ],
      "imports": [
-      "importlib.util",
-      "subprocess"
+      "ggplot2"
      ],
      "functions": [],
      "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-36d31b8ecc1a63fe",
+    "ordinal": 3,
+    "stmtKey": "af3bb2e9e1a858fd4f874bb3",
+    "stmt": "if dplyr is not installed:\n    install dplyr",
+    "startLine": 5,
+    "endLine": 6,
+    "sourceHash": "af3bb2e9e1a858fd4f874bb3",
+    "implementationHash": "1f5c6ce66efa671f54dbf662",
+    "interfaceHash": "a9757aaeef752c3678e48cb7",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "dplyr",
+      "quietly"
+     ],
+     "calls": [
+      "if",
+      "install.packages",
+      "requireNamespace"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
      "effects": [
-      "starts_process"
+      "starts_process",
+      "uses_network"
      ],
      "dynamic": false
     },
     "dependencies": [
      {
-      "nodeId": "n-4370d8ade27b229b",
-      "symbols": [
-       "importlib",
-       "subprocess"
-      ],
-      "kind": "symbol"
+      "nodeId": "n-588966f09413a831",
+      "symbols": [],
+      "kind": "effect"
      }
     ],
-    "dependencyInterfaceHash": "9b414416aec1f3c06cbc6acd"
+    "dependencyInterfaceHash": "c8e0d3b9d9b6f8ddffa8601f"
    },
    {
-    "id": "n-4c3ab7cc6c63996b",
-    "ordinal": 2,
-    "stmtKey": "27c28e4a2fee97e2725d0c00",
-    "stmt": "load the csv in the spendreport folder (it's)",
-    "startLine": 5,
-    "endLine": 5,
-    "sourceHash": "27c28e4a2fee97e2725d0c00",
-    "implementationHash": "d496c0dc63f2181a1f0cb2d3",
-    "interfaceHash": "397ff60517db6934c7964c53",
+    "id": "n-7b52a0c867606d6e",
+    "ordinal": 4,
+    "stmtKey": "484f8275c816887da57c2d56",
+    "stmt": "load the dplyr library",
+    "startLine": 7,
+    "endLine": 7,
+    "sourceHash": "484f8275c816887da57c2d56",
+    "implementationHash": "a73fa67b584fa69edf83aada",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
     "facts": {
-     "defines": [
-      "df",
-      "pd"
-     ],
-     "reads": [
-      "pd"
-     ],
+     "defines": [],
+     "reads": [],
      "calls": [
-      "pd.read_csv"
+      "library"
      ],
      "imports": [
-      "pandas"
+      "dplyr"
      ],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [],
+    "dependencyInterfaceHash": "e3b0c44298fc1c149afbf4c8"
+   },
+   {
+    "id": "n-214a9344c6eeb7a6",
+    "ordinal": 5,
+    "stmtKey": "42376413e198f224600644c4",
+    "stmt": "from this working directory, recursively, list all files that have a .csv extension and store in csv_files",
+    "startLine": 10,
+    "endLine": 10,
+    "sourceHash": "42376413e198f224600644c4",
+    "implementationHash": "e6b553cad2cbf978838c146e",
+    "interfaceHash": "ae0d0fdcaf83640bbecc0d7a",
+    "facts": {
+     "defines": [
+      "csv_files"
+     ],
+     "reads": [
+      "csv",
+      "full.names",
+      "path",
+      "pattern",
+      "recursive"
+     ],
+     "calls": [
+      ".csv",
+      "list.files"
+     ],
+     "imports": [],
      "functions": [],
      "classes": [],
      "effects": [
@@ -271,12 +667,212 @@
     },
     "dependencies": [
      {
-      "nodeId": "n-ce36b3cbe907a134",
+      "nodeId": "n-36d31b8ecc1a63fe",
       "symbols": [],
       "kind": "effect"
      }
     ],
-    "dependencyInterfaceHash": "237eab3690fea25c445f04a1"
+    "dependencyInterfaceHash": "98085cdc34035757c5b089a6"
+   },
+   {
+    "id": "n-a488c217207fb245",
+    "ordinal": 6,
+    "stmtKey": "331837c2434643ba672af7c9",
+    "stmt": "print csv_files list",
+    "startLine": 12,
+    "endLine": 12,
+    "sourceHash": "331837c2434643ba672af7c9",
+    "implementationHash": "bb3f4bf7c4bbac1a686af508",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "csv_files"
+     ],
+     "calls": [
+      "print"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-214a9344c6eeb7a6",
+      "symbols": [
+       "csv_files"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "7a51f66bd361e191c5dee6e2"
+   },
+   {
+    "id": "n-f6bc9521a4dd9483",
+    "ordinal": 7,
+    "stmtKey": "ec847289b518687dc932fb79",
+    "stmt": "read the first file in csv_files into a data frame called df",
+    "startLine": 13,
+    "endLine": 13,
+    "sourceHash": "ec847289b518687dc932fb79",
+    "implementationHash": "c0ebff5dc6f7166f0ae85e1a",
+    "interfaceHash": "fc737a4a9b98cf447be07c2d",
+    "facts": {
+     "defines": [
+      "df"
+     ],
+     "reads": [
+      "csv_files"
+     ],
+     "calls": [
+      "read.csv"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [
+      "reads_files"
+     ],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-214a9344c6eeb7a6",
+      "symbols": [
+       "csv_files"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "7a51f66bd361e191c5dee6e2"
+   },
+   {
+    "id": "n-ff146b8effd566ef",
+    "ordinal": 8,
+    "stmtKey": "32c220482c68413fbf8290e3",
+    "stmt": "df",
+    "startLine": 15,
+    "endLine": 15,
+    "sourceHash": "32c220482c68413fbf8290e3",
+    "implementationHash": "429e5ba5c5fb139ff6bd5025",
+    "interfaceHash": "f248b0dc969fcad704fc8fd0",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "df"
+     ],
+     "calls": [
+      "print"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-f6bc9521a4dd9483",
+      "symbols": [
+       "df"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "f1b1e5f2e475b84972eb16d8"
+   },
+   {
+    "id": "n-bce68ca6718cda4b",
+    "ordinal": 9,
+    "stmtKey": "675c365d22a9d9023a1b6b65",
+    "stmt": "make a barplot from df with date as x and amount as y save to p",
+    "startLine": 17,
+    "endLine": 17,
+    "sourceHash": "675c365d22a9d9023a1b6b65",
+    "implementationHash": "9e964ebf495f7ee933036884",
+    "interfaceHash": "19f3ee58483a710c40501b87",
+    "facts": {
+     "defines": [
+      "p"
+     ],
+     "reads": [
+      "amount",
+      "date",
+      "df",
+      "identity",
+      "stat",
+      "x",
+      "y"
+     ],
+     "calls": [
+      "aes",
+      "geom_bar",
+      "ggplot"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-f6bc9521a4dd9483",
+      "symbols": [
+       "df"
+      ],
+      "kind": "symbol"
+     }
+    ],
+    "dependencyInterfaceHash": "f1b1e5f2e475b84972eb16d8"
+   },
+   {
+    "id": "n-847ca94907d4fbc9",
+    "ordinal": 10,
+    "stmtKey": "01508d99e10fb52d9b7b1471",
+    "stmt": "take p and write as a png in cwd",
+    "startLine": 19,
+    "endLine": 19,
+    "sourceHash": "01508d99e10fb52d9b7b1471",
+    "implementationHash": "c460606ecd23bc6858b53c0d",
+    "interfaceHash": "d528df8880c3c4439bab875e",
+    "facts": {
+     "defines": [],
+     "reads": [
+      "device",
+      "p",
+      "p.png",
+      "plot",
+      "png"
+     ],
+     "calls": [
+      "ggsave"
+     ],
+     "imports": [],
+     "functions": [],
+     "classes": [],
+     "effects": [
+      "writes_files"
+     ],
+     "dynamic": false
+    },
+    "dependencies": [
+     {
+      "nodeId": "n-bce68ca6718cda4b",
+      "symbols": [
+       "p"
+      ],
+      "kind": "symbol"
+     },
+     {
+      "nodeId": "n-f6bc9521a4dd9483",
+      "symbols": [],
+      "kind": "effect"
+     }
+    ],
+    "dependencyInterfaceHash": "f234c24957cfe94c5b28eeba"
    }
   ]
  }

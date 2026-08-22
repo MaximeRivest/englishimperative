@@ -1,3 +1,5 @@
+export type Target = "bash" | "python" | "r";
+
 export type UnitKind = "comment" | "statement";
 
 export interface Unit {
@@ -15,7 +17,7 @@ export interface ParseResult {
 
 export interface Survey {
   language?: string; // English name of the source's human language
-  target: "bash" | "python";
+  target: Target;
   preambleEnd: number; // 1-based last preamble line, 0 = none
   uses: string[];
   definitions: { line: number; name: string }[]; // line is 1-based
@@ -28,7 +30,7 @@ export interface ModuleInfo {
   path: string;        // resolved .ei file
   name: string;        // python/bash identifier
   artifact: string;    // generated .py/.sh path
-  target: "bash" | "python";
+  target: Target;
   brief: string;
 }
 
@@ -89,7 +91,7 @@ export interface GraphNode {
 
 export interface DependencyGraph {
   version: 1;
-  target: "bash" | "python";
+  target: Target;
   engineId: string;
   briefsHash: string;
   sourceHash: string;
@@ -101,6 +103,7 @@ export interface PinData {
   code: string;
   stmt: string;
   at: number;
+  target?: Target;
   automatic?: boolean;
   acceptedDependencies?: Record<string, string>; // provider node id -> interface hash
 }
@@ -140,7 +143,7 @@ export interface Diag {
 
 export interface CompileResult {
   survey: Survey;
-  target: "bash" | "python";
+  target: Target;
   briefs: string;
   script: string;
   testScript: string;      // script + example assertions harness ("" = no examples)

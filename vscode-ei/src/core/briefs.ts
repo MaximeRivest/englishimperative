@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { EngineConfig } from "./types";
+import { EngineConfig, Target } from "./types";
 import { piBriefForDir } from "./engine";
 
 // Shares the cache directory and format with the ei CLI (~/.ei/libs):
@@ -111,7 +111,7 @@ export function cachedBriefText(rawPath: string): string {
 
 // Deterministic library-loading code: the compiler, not the model, makes
 // libraries available.
-export function preludeFor(target: "bash" | "python", rawPath: string): string {
+export function preludeFor(target: Target, rawPath: string): string {
   const p = expandHome(rawPath);
   if (!fs.existsSync(p)) return "";
   const isDir = fs.statSync(p).isDirectory();
@@ -125,6 +125,12 @@ export function preludeFor(target: "bash" | "python", rawPath: string): string {
       : [path.basename(p)];
     for (const m of mods) out += `import ${m.replace(/\.py$/, "")}\n`;
     return out;
+  }
+  if (target === "r") {
+    const rfiles = isDir
+      ? fs.readdirSync(p).filter(f => /\.[Rr]$/.test(f)).sort().slice(0, 8).map(f => path.join(p, f))
+      : /\.[Rr]$/.test(p) ? [p] : [];
+    return rfiles.map(f => `source('${f}')\n`).join("");
   }
   if (!isDir) return p.endsWith(".sh") ? `source '${p}'\n` : "";
   const shs = fs.readdirSync(p).filter(f => f.endsWith(".sh")).sort().slice(0, 8);

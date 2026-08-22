@@ -11,3 +11,6 @@ __pycache__/
 # generated artifacts live in .ei-build/ (kept visible if you want them,
 # ignored by default since they regenerate from pins)
 **/.ei-build/
+Rplots.pdf
+examples/*.png
+examples/*.pdf

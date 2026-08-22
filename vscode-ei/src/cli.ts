@@ -6,7 +6,7 @@ import * as path from "node:path";
 import { compile } from "./core/compiler";
 import { instrument } from "./core/debug";
 import { shutdownWarmPi } from "./core/engine";
-import { EngineConfig } from "./core/types";
+import { EngineConfig, Target } from "./core/types";
 
 function usage(): never {
   console.error("usage: ei compile FILE.ei [-o OUT] | run FILE.ei | test FILE.ei | debug FILE.ei | lint FILE.ei | locked FILE.ei [-o OUT] | graph FILE.ei");
@@ -45,10 +45,10 @@ function graphText(result: Awaited<ReturnType<typeof compile>>): string {
 
 // Programs run with their source directory as the working directory, so
 // relative paths in the prose ("./expenses.csv") mean what the reader thinks.
-function runScript(target: "bash" | "python", script: string, cwd: string): number {
-  const tmp = path.join(os.tmpdir(), `ei-run-${process.pid}-${Date.now()}${target === "python" ? ".py" : ".sh"}`);
+function runScript(target: Target, script: string, cwd: string): number {
+  const tmp = path.join(os.tmpdir(), `ei-run-${process.pid}-${Date.now()}${target === "python" ? ".py" : target === "r" ? ".R" : ".sh"}`);
   fs.writeFileSync(tmp, script, { mode: 0o755 });
-  const run = spawnSync(target === "python" ? "python3" : "bash", [tmp], { stdio: "inherit", cwd });
+  const run = spawnSync(target === "python" ? "python3" : target === "r" ? "Rscript" : "bash", [tmp], { stdio: "inherit", cwd });
   try { fs.unlinkSync(tmp); } catch {}
   return run.status ?? 1;
 }

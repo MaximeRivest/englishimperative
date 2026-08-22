@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { sha, stmtKey } from "./cache";
-import { DependencyEdge, DependencyGraph, Effect, GraphNode, SemanticFacts, Unit } from "./types";
+import { DependencyEdge, DependencyGraph, Effect, GraphNode, SemanticFacts, Target, Unit } from "./types";
 
 const PY_ANALYZER = String.raw`
 import ast, builtins, json, symtable, sys
@@ -142,8 +142,56 @@ function analyzeBash(code: string): SemanticFacts {
   return { defines: [...defines].sort(), reads: [...reads].sort(), calls: [...calls].sort(), imports: [...imports].sort(), functions, classes: [], effects: [...effects].sort(), dynamic };
 }
 
-export async function analyzeBlocks(target: "bash" | "python", codes: string[]): Promise<SemanticFacts[]> {
-  return target === "python" ? analyzePython(codes) : codes.map(analyzeBash);
+function analyzeR(code: string): SemanticFacts {
+  const defines = new Set<string>();
+  const reads = new Set<string>();
+  const calls = new Set<string>();
+  const imports = new Set<string>();
+  const effects = new Set<Effect>();
+  const functions: SemanticFacts["functions"] = [];
+  // assignments: x <- ...  / x <<- ... / assign("x", ...)
+  for (const m of code.matchAll(/([A-Za-z.][\w.]*)\s*(<-|<<-)/g)) defines.add(m[1]);
+  for (const m of code.matchAll(/assign\(\s*["']([\w.]+)["']/g)) defines.add(m[1]);
+  // function definitions: name <- function(a, b = 1, ...)
+  for (const m of code.matchAll(/([A-Za-z.][\w.]*)\s*<\-\s*function\s*\(([^)]*)\)/g)) {
+    defines.add(m[1]);
+    const params = m[2].split(",").map(p => p.trim().split(/\s*=/)[0].trim()).filter(p => /^[\w.]+$/.test(p));
+    functions.push({ name: m[1], parameters: params, requiredParameters: params.filter(p => !m[2].includes(p + " =") && !m[2].includes(p + "=")).length, async: false });
+  }
+  for (const m of code.matchAll(/\bfunction\s*\(([^)]*)\)/g)) {
+    if (!functions.length || !code.match(new RegExp("[A-Za-z.][\\w.]*\\s*<-\\s*function"))) { /* anonymous */ }
+  }
+  // calls and reads
+  for (const m of code.matchAll(/([A-Za-z.][\w.]*)\s*\(/g)) calls.add(m[1]);
+  for (const m of code.matchAll(/([A-Za-z.][\w.]*)\$/g)) calls.add(m[1]);
+  // library/require
+  for (const m of code.matchAll(/\b(?:library|require)\s*\(\s*["']?([\w.]+)/g)) imports.add(m[1]);
+  // effects
+  for (const m of code.matchAll(/\b(read\.csv|read\.csv2|read\.table|readLines|readRDS|source|file\.exists|list\.files|dir)\s*\(/g)) effects.add("reads_files");
+  for (const m of code.matchAll(/\b(write\.csv|write\.csv2|write\.table|writeLines|saveRDS|save|png|pdf|jpeg|ggsave)\s*\(/g)) effects.add("writes_files");
+  for (const m of code.matchAll(/\b(unlink|file\.remove)\s*\(/g)) effects.add("deletes_data");
+  for (const m of code.matchAll(/\b(system|system2)\s*\(/g)) effects.add("starts_process");
+  for (const m of code.matchAll(/\binstall\.packages\s*\(/g)) { effects.add("uses_network"); effects.add("starts_process"); }
+  for (const m of code.matchAll(/\b(dbConnect|dbGetQuery|dbExecute|dbWriteTable)\s*\(/g)) effects.add("reads_database");
+  for (const m of code.matchAll(/\b(Sys\.time|Sys\.Date|as\.Date\s*\(\s*Sys|format\s*\(\s*Sys)\b/g)) effects.add("uses_time");
+  for (const m of code.matchAll(/\b(rnorm|runif|sample|set\.seed)\s*\(/g)) effects.add("uses_randomness");
+  for (const m of code.matchAll(/\b(eval|get|do\.call|parse\s*\(\s*text)\s*\(/g)) effects.add("unknown_dynamic");
+  // reads: identifiers not assigned locally and not a call name
+  for (const m of code.matchAll(/\b([A-Za-z.][\w.]*)\b/g)) {
+    const name = m[1];
+    if (!defines.has(name) && !calls.has(name) && !imports.has(name) && !/^(T|F|TRUE|FALSE|NA|NULL|Inf|NaN|if|else|for|while|repeat|function|in|next|break|return|library|require|c|list|data\.frame|matrix)$/.test(name)) reads.add(name);
+  }
+  return {
+    defines: [...defines].sort(), reads: [...reads].sort(), calls: [...calls].sort(),
+    imports: [...imports].sort(), functions, classes: [],
+    effects: [...effects].sort(), dynamic: effects.has("unknown_dynamic"),
+  };
+}
+
+export async function analyzeBlocks(target: Target, codes: string[]): Promise<SemanticFacts[]> {
+  if (target === "python") return analyzePython(codes);
+  if (target === "r") return codes.map(analyzeR);
+  return codes.map(analyzeBash);
 }
 
 function interfaceHash(f: SemanticFacts): string {
@@ -177,7 +225,7 @@ export function assignNodeIds(units: Unit[], previous?: DependencyGraph): string
 }
 
 export async function buildDependencyGraph(
-  target: "bash" | "python",
+  target: Target,
   engine: string,
   briefsHash: string,
   sourceText: string,

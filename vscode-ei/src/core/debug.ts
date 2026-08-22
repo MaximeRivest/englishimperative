@@ -1,4 +1,4 @@
-import { CompileResult } from "./types";
+import { CompileResult, Target } from "./types";
 
 // English-statement debugger: instrument the generated script so execution
 // pauses before each statement, shows the English line plus the code, and
@@ -56,7 +56,7 @@ __ei_pause() {
 }
 `;
 
-function quote(target: "bash" | "python", s: string): string {
+function quote(target: Target, s: string): string {
   const first = s.split("\n")[0].slice(0, 120);
   return target === "python"
     ? JSON.stringify(first)

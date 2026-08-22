@@ -13,14 +13,14 @@ import {
 } from "./semantic";
 import {
   BlockResult, CacheData, CompileResult, DependencyGraph, Diag, EngineConfig,
-  GraphNode, ModuleInfo, StalenessInfo, Survey, Unit,
+  GraphNode, ModuleInfo, StalenessInfo, Survey, Target, Unit,
 } from "./types";
 
 const SURVEY_SYS = `You analyze a natural-language program. The program may be written in any human language (English, French, Spanish, Chinese, …). Input lines are numbered "N: text".
 Output ONLY one JSON object, no fences, no prose:
-{"language":"iso-639-1","target":"bash"|"python","preamble_end_line":N,"uses":["path",...],"definitions":[{"line":N,"name":"snake_case_name"},...],"examples":[{"line":N,"name":"short_test_name"},...]}
+{"language":"iso-639-1","target":"bash"|"python"|"r","preamble_end_line":N,"uses":["path",...],"definitions":[{"line":N,"name":"snake_case_name"},...],"examples":[{"line":N,"name":"short_test_name"},...]}
 language: the ISO 639-1 code of the human language of the source text.
-target: the language the text states or implies; default bash.
+target: the language the text states or implies. Values: "python", "r" (the R language for statistics and data analytics), or "bash". Default bash. The words R, RStudio, ggplot, dplyr, or "R script" always mean "r".
 preamble_end_line: last line of an opening description that only introduces the program (0 if the file starts with instructions).
 uses: local files, directories, or repos the program says it depends on, exactly as written.
 definitions: top-level statements that define a reusable procedure, in any wording, with the line number of their first line and a good target-language function name.
@@ -34,7 +34,7 @@ Do not report style. Do not report clear statements. An empty array is a good an
 The author never uses reserved words; judge meaning, not vocabulary.`;
 
 function exampleSys(target: string, briefs: string, outline: string, srcLang: string): string {
-  let sys = `You are a strict natural-language-to-${target} test writer. The source is written in ${srcLang}. The user's statement states an expected result, in any wording. Translate it into ${target} code that CHECKS the expectation against the program state shown in the context: compute the actual value and ${target === "python" ? "use assert (with a clear message) or raise AssertionError" : "compare it and exit 1 with an error message on mismatch"}. Output ONLY the checking code: no fences, no comments, no prose. Do not print on success.`;
+  let sys = `You are a strict natural-language-to-${target} test writer. The source is written in ${srcLang}. The user's statement states an expected result, in any wording. Translate it into ${target} code that CHECKS the expectation against the program state shown in the context: compute the actual value and ${target === "python" ? "use assert (with a clear message) or raise AssertionError" : target === "r" ? "use stopifnot / stop with a clear message on mismatch" : "compare it and exit 1 with an error message on mismatch"}. Output ONLY the checking code: no fences, no comments, no prose. Do not print on success.`;
   if (outline) sys += ` Functions defined in this program: ${outline}.`;
   if (briefs) sys += `\n\nKnown libraries (API reference):\n${briefs}`;
   return sys;
@@ -57,7 +57,10 @@ export async function runSurvey(text: string, cfg: EngineConfig): Promise<Survey
   if (!raw || typeof raw !== "object") return fallback;
   const survey: Survey = {
     language: typeof raw.language === "string" ? englishNameOfCode(raw.language) ?? undefined : undefined,
-    target: raw.target === "python" ? "python" : "bash",
+    target: raw.target === "python" ? "python"
+      : /^(r|rscript|r-lang)$/i.test(String(raw.target ?? "")) ? "r"
+      : raw.target === "bash" ? "bash"
+      : "bash",
     preambleEnd: Number.isInteger(raw.preamble_end_line) && raw.preamble_end_line > 0 ? raw.preamble_end_line : 0,
     uses: Array.isArray(raw.uses) ? raw.uses.filter((u: any) => typeof u === "string") : [],
     definitions: Array.isArray(raw.definitions)
@@ -118,7 +121,7 @@ function commentize(stmt: string): string {
   return stmt.split("\n").map(l => `# ${l}`).join("\n");
 }
 
-async function syntaxCheck(target: "bash" | "python", script: string): Promise<{ message: string; line: number } | null> {
+async function syntaxCheck(target: Target, script: string): Promise<{ message: string; line: number } | null> {
   const tmp = path.join(os.tmpdir(), `ei-vsc-${process.pid}-${Date.now()}`);
   fs.writeFileSync(tmp, script);
   try {
@@ -131,11 +134,18 @@ async function syntaxCheck(target: "bash" | "python", script: string): Promise<{
         const m = /line (\d+): (.*)/.exec(r.stderr);
         return { line: m ? parseInt(m[1], 10) - 1 : 0, message: m ? m[2] : r.stderr.trim() || "syntax error" };
       }
-    } else {
-      const r = await run("bash", ["-n", tmp]);
+    } else if (target === "r") {
+      const r = await run("Rscript", ["-e",
+        `p <- try(parse("${tmp}"), silent = TRUE); if (inherits(p, "try-error")) { cat(conditionMessage(attr(p, "condition"))); quit(save = "no", status = 1) }`]);
       if (r.code !== 0) {
-        const m = /line (\d+): (.*)/.exec(r.stderr);
-        return { line: m ? parseInt(m[1], 10) - 1 : 0, message: m ? m[2] : r.stderr.trim() || "syntax error" };
+        const m = /:(\d+):(\d+):/.exec(r.stderr);
+        return { line: m ? parseInt(m[1], 10) - 1 : 0, message: r.stderr.trim().split("\n").slice(-2).join(" ") || "syntax error" };
+      }
+    } else {
+      const r2 = await run("bash", ["-n", tmp]);
+      if (r2.code !== 0) {
+        const m = /line (\d+): (.*)/.exec(r2.stderr);
+        return { line: m ? parseInt(m[1], 10) - 1 : 0, message: m ? m[2] : r2.stderr.trim() || "syntax error" };
       }
     }
     return null;
@@ -161,6 +171,9 @@ export function resolveUsePath(eiFile: string, use: string): string {
   return path.isAbsolute(e) ? e : path.resolve(path.dirname(eiFile), e);
 }
 
+
+const isTarget = (s?: string): s is Target => s === "bash" || s === "python" || s === "r";
+
 function moduleName(file: string): string {
   const base = path.basename(stripSourceExt(file)).replace(/[^A-Za-z0-9_]/g, "_");
   return /^[A-Za-z_]/.test(base) ? base : "m_" + base;
@@ -169,7 +182,7 @@ function moduleName(file: string): string {
 // Shared by compile() and the REPL: briefs, deterministic prelude, and
 // compiled English modules for everything the prose says it uses.
 async function resolveUses(
-  eiFile: string, survey: Survey, target: "bash" | "python", cfg: EngineConfig,
+  eiFile: string, survey: Survey, target: Target, cfg: EngineConfig,
   opts: CompileOptions, diagnostics: Diag[], locked: boolean,
 ): Promise<{ briefs: string; prelude: string; modules: ModuleInfo[] }> {
   let briefs = "", prelude = "";
@@ -206,7 +219,7 @@ async function resolveUses(
 // An .ei dependency is an English module: compile it first (its own sidecar
 // and pins), write its artifact, and describe its public API in English.
 async function compileModule(
-  rawPath: string, parentTarget: "bash" | "python", cfg: EngineConfig, opts: CompileOptions,
+  rawPath: string, parentTarget: Target, cfg: EngineConfig, opts: CompileOptions,
   diagnostics: Diag[], preambleEnd: number,
 ): Promise<ModuleInfo | null> {
   const diagLine = { line: 0, endLine: Math.max(0, preambleEnd - 1) };
@@ -286,8 +299,7 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
   (survey as any).uses ??= [];
   (survey as any).definitions ??= [];
 
-  const target = (parsed.explicitTarget === "python" || parsed.explicitTarget === "bash")
-    ? parsed.explicitTarget as "bash" | "python" : survey.target;
+  const target = isTarget(parsed.explicitTarget) ? parsed.explicitTarget : survey.target;
 
   const { briefs, prelude, modules } = await resolveUses(eiFile, survey, target, cfg, opts, diagnostics, locked);
 
@@ -325,7 +337,10 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
     if (unit.kind === "comment") { code += unit.text + "\n"; continue; }
     const sKey = stmtKey(unit.text);
     const nodeId = idByUnit.get(unit) ?? `unknown-${unit.startLine}`;
-    const existingPin = cache.pins[sKey];
+    const rawPin = cache.pins[sKey];
+    // a pin made under a different target is obsolete. Pins without a
+    // target field were written before R existed and count as python.
+    const existingPin = rawPin && (rawPin.target ?? "python") === target ? rawPin : undefined;
     const forced = !!opts.force?.has(sKey);
     let blockCode = "", pinned = false, automaticPin = false, fromCache = false, error: string | undefined;
 
@@ -362,6 +377,7 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
         cache.pins[sKey] = {
           code: blockCode, stmt: unit.text, at: Date.now(),
           automatic: existingPin ? !!existingPin.automatic : pinByDefault,
+          target,
         };
         pinned = true;
         automaticPin = !!cache.pins[sKey].automatic;
@@ -378,7 +394,8 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
     blocks.push({ unit, nodeId, code: blockCode, pinned, automaticPin, fromCache, error, genStart, genEnd });
   }
 
-  const shebang = target === "python" ? "#!/usr/bin/env python3" : "#!/usr/bin/env bash";
+  const shebang = target === "python" ? "#!/usr/bin/env python3"
+    : target === "r" ? "#!/usr/bin/env Rscript" : "#!/usr/bin/env bash";
   const preambleLines = text.split(/\r?\n/).slice(0, survey.preambleEnd);
   const pre = preambleLines.length ? preambleLines.map(l => `# ${l}`).join("\n") + "\n\n" : "";
   const headerText = `${shebang}\n# generated by ei from ${path.basename(eiFile)}\n\n${pre}`;
@@ -393,13 +410,16 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
     const esys = exampleSys(target, briefs, outline, srcLang);
     const lineCount = (s: string) => s === "" ? 0 : s.split("\n").length - (s.endsWith("\n") ? 1 : 0);
     const indent = (s: string) => s.split("\n").map(l => l ? "    " + l : l).join("\n");
-    let test = target === "python" ? "# ei examples (tests)\n__ei_failures = 0\n\n" : "# ei examples (tests)\n__ei_failures=0\n\n";
+    let test = target === "python" ? "# ei examples (tests)\n__ei_failures = 0\n\n"
+      : target === "r" ? "# ei examples (tests)\nei_failures <- 0\n\n"
+      : "# ei examples (tests)\n__ei_failures=0\n\n";
     for (const unit of exampleUnits) {
       if (opts.token?.isCancellationRequested) break;
       const sKey = stmtKey(unit.text);
       const nodeId = idByUnit.get(unit) ?? `unknown-${unit.startLine}`;
       const name = (exampleName.get(unit.startLine) ?? "example").replace(/[^A-Za-z0-9_-]/g, "_");
-      const existingPin = cache.pins[sKey];
+      const rawPin = cache.pins[sKey];
+      const existingPin = rawPin && (rawPin.target ?? "python") === target ? rawPin : undefined;
       const forced = !!opts.force?.has(sKey);
       let blockCode = "", pinned = false, automaticPin = false, fromCache = false, error: string | undefined;
       if (existingPin && !forced) { blockCode = existingPin.code; pinned = true; automaticPin = !!existingPin.automatic; }
@@ -426,13 +446,15 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
           }
         } else error = "not translated yet";
         if (blockCode && (pinByDefault || existingPin)) {
-          cache.pins[sKey] = { code: blockCode, stmt: unit.text, at: Date.now(), automatic: existingPin ? !!existingPin.automatic : pinByDefault };
+          cache.pins[sKey] = { code: blockCode, stmt: unit.text, at: Date.now(), automatic: existingPin ? !!existingPin.automatic : pinByDefault, target };
           pinned = true; automaticPin = !!cache.pins[sKey].automatic; repin.add(sKey); mutated = true;
         }
       }
       const src = unit.startLine + 1;
       const wrapped = target === "python"
         ? `${commentize(unit.text)}\ntry:\n${indent(blockCode || "raise AssertionError('untranslated example')")}\n    print("EI-TEST ${src} PASS ${name}")\nexcept Exception as __ei_e:\n    print(f"EI-TEST ${src} FAIL ${name}: {__ei_e}")\n    __ei_failures += 1\n\n`
+        : target === "r"
+        ? `${commentize(unit.text)}\nres <- try({\n${indent(blockCode || 'stop("untranslated example")')}\n}, silent = TRUE)\nif (inherits(res, "try-error")) { cat(sprintf("EI-TEST ${src} FAIL ${name}: %s\\n", conditionMessage(attr(res, "condition")))); ei_failures <- ei_failures + 1 } else cat(sprintf("EI-TEST ${src} PASS ${name}\\n"))\n\n`
         : `${commentize(unit.text)}\nif (\n  set -e\n${(blockCode || "false").split("\n").map(l => "  " + l).join("\n")}\n); then echo "EI-TEST ${src} PASS ${name}"; else echo "EI-TEST ${src} FAIL ${name}"; __ei_failures=$((__ei_failures+1)); fi\n\n`;
       const genStart = lineCount(script) + lineCount(test);
       test += wrapped;
@@ -441,6 +463,8 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
     }
     test += target === "python"
       ? `import sys as __ei_sys\n__ei_sys.exit(1 if __ei_failures else 0)\n`
+      : target === "r"
+      ? `if (ei_failures > 0) quit(save = "no", status = 1)\n`
       : `exit $(( __ei_failures > 0 ))\n`;
     testScript = script + test;
   }
@@ -511,7 +535,7 @@ export async function compile(eiFile: string, text: string, cfg: EngineConfig, o
   return { survey, target, briefs, script, testScript, blocks, exampleBlocks, modules, diagnostics, hoistedLines, graph, locked };
 }
 
-function cachedBriefsAndPrelude(eiFile: string, survey: Survey, target: "bash" | "python"): { briefs: string; prelude: string } {
+function cachedBriefsAndPrelude(eiFile: string, survey: Survey, target: Target): { briefs: string; prelude: string } {
   let briefs = "", prelude = "";
   if (survey.uses.length && target === "python") prelude = "import sys\n";
   for (const rawUse of survey.uses) {
@@ -529,7 +553,7 @@ export function staleness(eiFile: string, text: string, cfg: EngineConfig): Stal
   const cache = loadCache(eiFile);
   const parsed = parse(text);
   const survey = cache.survey?.value ?? { target: "bash" as const, preambleEnd: 0, uses: [], definitions: [], examples: [] };
-  const target = (parsed.explicitTarget === "python" || parsed.explicitTarget === "bash") ? parsed.explicitTarget as "bash" | "python" : survey.target;
+  const target = isTarget(parsed.explicitTarget) ? parsed.explicitTarget : survey.target;
   const currentUnits = parsed.units.filter(u => u.kind === "statement" && u.startLine >= survey.preambleEnd);
   const ids = assignNodeIds(currentUnits, cache.graph);
   const graph = cache.graph;
@@ -578,7 +602,7 @@ export function staleness(eiFile: string, text: string, cfg: EngineConfig): Stal
 // RStudio-style interactive use: one statement at a time, JIT-translated
 // (pins and cache first), executed in a persistent real REPL process.
 export interface ReplSession {
-  target: "bash" | "python";
+  target: Target;
   prelude: string;      // library loading, run once at session start
   sys: string;          // translator system prompt for this program
   sysExample: string;   // expectation-checker prompt
@@ -594,8 +618,7 @@ export async function replSetup(eiFile: string, text: string, cfg: EngineConfig,
   (survey as any).examples ??= []; (survey as any).uses ??= []; (survey as any).definitions ??= [];
   saveCache(eiFile, cache);
   const parsed = parse(text);
-  const target = (parsed.explicitTarget === "python" || parsed.explicitTarget === "bash")
-    ? parsed.explicitTarget as "bash" | "python" : survey.target;
+  const target = isTarget(parsed.explicitTarget) ? parsed.explicitTarget : survey.target;
   const diagnostics: Diag[] = [];
   const { briefs, prelude } = await resolveUses(eiFile, survey, target, cfg, { translateMissing: true, onProgress }, diagnostics, false);
   const err = diagnostics.find(d => d.severity === "error");
