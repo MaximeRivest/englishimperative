@@ -46,11 +46,14 @@ runnable. The model only translates; execution produces all results.
 - **English debugger**: `EI: Debug` steps through the program one English
   statement at a time in the terminal: Enter steps, `c` continues, `v` shows
   variables, `p NAME` prints one, `q` quits.
-- **REPL (Shift+Enter)**: like RStudio. Shift+Enter sends the statement under
-  the cursor to a live `python3`/`bash` terminal below: pins and cache answer
-  instantly, only new sentences reach the model, state persists in the real
-  process, and the cursor advances to the next statement. The generated code
-  logs to the "English Imperative" output channel. `EI: Restart REPL Session`
+- **REPL (Shift+Enter)**: like RStudio, for Python, R, and bash alike.
+  Shift+Enter sends the statement under the cursor to a live `ei>` prompt
+  below. The prompt itself is bilingual: type English or native code
+  directly into it. English translates (pins and cache answer instantly,
+  only new sentences reach the model), the generated code echoes as `⟶`
+  lines, and state persists in one real process per file. A `,` prefix
+  forces translation; incomplete R continues on `...` like R's own `+`.
+  The cursor advances to the next statement. `EI: Restart REPL Session`
   starts fresh.
 - **Any human language**: the file extension may name the source language —
   full names (`rapport.francais`, `bericht.deutsch`), ISO 639 codes

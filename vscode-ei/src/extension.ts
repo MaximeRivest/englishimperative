@@ -6,7 +6,7 @@ import { acceptPinDependencies, clearCache, compile, pinStatement, replSetup, re
 import type { ReplSession } from "./core/compiler";
 import { instrument } from "./core/debug";
 import { shutdownWarmPi } from "./core/engine";
-import { PY_REPL_HOST } from "./core/replHost";
+import { BASH_REPL_HOST, PY_REPL_HOST, R_REPL_HOST } from "./core/replHost";
 import { briefFor } from "./core/briefs";
 import { loadCache, saveCache, stmtKey } from "./core/cache";
 import { parse } from "./core/parser";
@@ -33,7 +33,7 @@ function engineConfig(): EngineConfig {
 
 function compiledUri(doc: vscode.TextDocument): vscode.Uri {
   const target = lastResults.get(doc.uri.fsPath)?.target ?? "txt";
-  const ext = target === "python" ? "py" : "sh";
+  const ext = target === "python" ? "py" : target === "r" ? "R" : "sh";
   return vscode.Uri.from({ scheme: SCHEME, path: doc.uri.fsPath + `.generated.${ext}`, query: doc.uri.fsPath });
 }
 
@@ -172,7 +172,7 @@ export function activate(context: vscode.ExtensionContext) {
     const uri = compiledUri(doc);
     const vdoc = await vscode.workspace.openTextDocument(uri);
     const target = lastResults.get(doc.uri.fsPath)?.target;
-    await vscode.languages.setTextDocumentLanguage(vdoc, target === "python" ? "python" : "shellscript");
+    await vscode.languages.setTextDocumentLanguage(vdoc, target === "python" ? "python" : target === "r" ? "r" : "shellscript");
     await vscode.window.showTextDocument(vdoc, { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true, preview: false });
   }
 
@@ -207,24 +207,44 @@ export function activate(context: vscode.ExtensionContext) {
   async function ensureReplServer(): Promise<number> {
     if (replServer && replPort) return replPort;
     const http = require("node:http") as typeof import("node:http");
+    // one translation for both wire formats: JSON (python host) and
+    // plain text (R and bash hosts, which speak through curl)
+    const serve = async (token: string, text: string) => {
+      const live = replsByToken.get(token);
+      if (!live) throw new Error("unknown session; restart the REPL");
+      const stmt = text.trim();
+      const kind = live.session.exampleTexts.includes(stmt) ? "example" : "statement";
+      const r = await replTranslate(live.terminalDoc ?? "", stmt, live.session, live.code, engineConfig(), kind);
+      live.code += r.code.endsWith("\n") ? r.code : r.code + "\n";
+      output.appendLine(`repl${r.pinned ? " (pinned)" : r.fromCache ? " (cached)" : ""}: ${stmt.split("\n")[0]}`);
+      return r;
+    };
     replServer = http.createServer((req, res) => {
-      if (req.method !== "POST" || req.url !== "/translate") { res.statusCode = 404; res.end(); return; }
+      const isJson = req.url === "/translate";
+      const isRaw = req.url === "/translate-raw";
+      if (req.method !== "POST" || (!isJson && !isRaw)) { res.statusCode = 404; res.end(); return; }
       let body = "";
       req.on("data", d => body += d);
       req.on("end", async () => {
-        const reply = (obj: unknown) => { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); };
+        if (isJson) {
+          const reply = (obj: unknown) => { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); };
+          try {
+            const { token, text } = JSON.parse(body);
+            const r = await serve(String(token), String(text));
+            reply({ code: r.code, kind: r.kind });
+          } catch (e: any) {
+            reply({ error: String(e?.message ?? e) });
+          }
+          return;
+        }
+        // raw protocol: token in a header, statement in the body;
+        // response line 1 = ok | ok-example | error, the rest = payload
+        res.setHeader("Content-Type", "text/plain");
         try {
-          const { token, text } = JSON.parse(body);
-          const live = replsByToken.get(String(token));
-          if (!live) { reply({ error: "unknown session; restart the REPL" }); return; }
-          const stmt = String(text).trim();
-          const kind = live.session.exampleTexts.includes(stmt) ? "example" : "statement";
-          const r = await replTranslate(live.terminalDoc ?? "", stmt, live.session, live.code, engineConfig(), kind);
-          live.code += r.code.endsWith("\n") ? r.code : r.code + "\n";
-          output.appendLine(`repl${r.pinned ? " (pinned)" : r.fromCache ? " (cached)" : ""}: ${stmt.split("\n")[0]}`);
-          reply({ code: r.code, kind: r.kind });
+          const r = await serve(String(req.headers["x-ei-token"] ?? ""), body);
+          res.end((r.kind === "example" ? "ok-example" : "ok") + "\n" + r.code);
         } catch (e: any) {
-          reply({ error: String(e?.message ?? e) });
+          res.end("error\n" + String(e?.message ?? e));
         }
       });
     });
@@ -243,28 +263,27 @@ export function activate(context: vscode.ExtensionContext) {
       progress => replSetup(key, doc.getText(), engineConfig(), m => progress.report({ message: m })));
     const port = await ensureReplServer();
     const token = Math.random().toString(36).slice(2);
-    let terminal: vscode.Terminal;
-    if (session.target === "python") {
-      const hostFile = path.join(os.tmpdir(), `ei-repl-host-${token}.py`);
-      fs.writeFileSync(hostFile, PY_REPL_HOST);
-      let preludeFile = "";
-      if (session.prelude.trim()) {
-        preludeFile = path.join(os.tmpdir(), `ei-repl-prelude-${token}.py`);
-        fs.writeFileSync(preludeFile, session.prelude);
-      }
-      terminal = vscode.window.createTerminal({
-        name: "ei repl",
-        cwd: path.dirname(key),
-        shellPath: "python3",
-        shellArgs: [hostFile],
-        env: { EI_REPL_PORT: String(port), EI_REPL_TOKEN: token, EI_REPL_PRELUDE: preludeFile },
-      });
-    } else {
-      // bash: a plain shell; generated code is typed in directly, so it stays
-      // visible and native. English still arrives through Shift+Enter.
-      terminal = vscode.window.createTerminal({ name: "ei repl", cwd: path.dirname(key), shellPath: "bash" });
-      if (session.prelude.trim()) terminal.sendText(session.prelude.trimEnd());
+    // every target gets a bilingual ei> host: English or native code at
+    // one prompt, generated code echoed as ⟶ lines, state in one process
+    const host = session.target === "python"
+      ? { src: PY_REPL_HOST, ext: "py", shell: "python3" }
+      : session.target === "r"
+        ? { src: R_REPL_HOST, ext: "R", shell: "Rscript" }
+        : { src: BASH_REPL_HOST, ext: "sh", shell: "bash" };
+    const hostFile = path.join(os.tmpdir(), `ei-repl-host-${token}.${host.ext}`);
+    fs.writeFileSync(hostFile, host.src);
+    let preludeFile = "";
+    if (session.prelude.trim()) {
+      preludeFile = path.join(os.tmpdir(), `ei-repl-prelude-${token}.${host.ext}`);
+      fs.writeFileSync(preludeFile, session.prelude);
     }
+    const terminal = vscode.window.createTerminal({
+      name: "ei repl",
+      cwd: path.dirname(key),
+      shellPath: host.shell,
+      shellArgs: [hostFile],
+      env: { EI_REPL_PORT: String(port), EI_REPL_TOKEN: token, EI_REPL_PRELUDE: preludeFile },
+    });
     const live: LiveRepl & { terminalDoc?: string } = { session, terminal, code: "", token, terminalDoc: key };
     repls.set(key, live);
     replsByToken.set(token, live);
@@ -302,11 +321,11 @@ export function activate(context: vscode.ExtensionContext) {
       await saveForCommand(doc);
       const fresh = await doCompile(doc);
       if (!fresh || fresh.diagnostics.some(d => d.severity === "error")) return;
-      const tmp = path.join(os.tmpdir(), `ei-vsc-run-${Date.now()}.${fresh.target === "python" ? "py" : "sh"}`);
+      const tmp = path.join(os.tmpdir(), `ei-vsc-run-${Date.now()}.${fresh.target === "python" ? "py" : fresh.target === "r" ? "R" : "sh"}`);
       fs.writeFileSync(tmp, fresh.script, { mode: 0o755 });
       const term = vscode.window.terminals.find(t => t.name === "ei") ?? vscode.window.createTerminal("ei");
       term.show(true);
-      term.sendText(`cd ${JSON.stringify(path.dirname(doc.uri.fsPath))} && ${fresh.target === "python" ? "python3" : "bash"} ${tmp}`);
+      term.sendText(`cd ${JSON.stringify(path.dirname(doc.uri.fsPath))} && ${fresh.target === "python" ? "python3" : fresh.target === "r" ? "Rscript" : "bash"} ${tmp}`);
     }),
 
     vscode.commands.registerCommand("ei.showCompiled", async () => {
@@ -320,7 +339,7 @@ export function activate(context: vscode.ExtensionContext) {
       await saveForCommand(doc);
       const result = await doCompile(doc);
       if (!result) return;
-      const ext = result.target === "python" ? "py" : "sh";
+      const ext = result.target === "python" ? "py" : result.target === "r" ? "R" : "sh";
       const out = doc.uri.fsPath.replace(/\.ei$/, "") + "." + ext;
       fs.writeFileSync(out, result.script, { mode: 0o755 });
       vscode.window.showInformationMessage(`EI: wrote ${out}`);
@@ -400,21 +419,10 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage("EI: that line describes the program; skipped.");
           advance(); return;
         }
-        if (live.session.target === "python") {
-          // the host prompt accepts English directly; examples are detected
-          // by the translation server, which uses the expectation checker
-          live.terminal.show(true);
-          live.terminal.sendText(unit.text + "\n");
-        } else {
-          // bash shows typed code natively; translate here, send the code
-          const { code, fromCache, pinned } = await vscode.window.withProgress(
-            { location: vscode.ProgressLocation.Window, title: "EI translate" },
-            () => replTranslate(doc.uri.fsPath, unit.text, live.session, live.code, engineConfig()));
-          output.appendLine(`repl${pinned ? " (pinned)" : fromCache ? " (cached)" : ""}: ${unit.text.split("\n")[0]}`);
-          live.code += code.endsWith("\n") ? code : code + "\n";
-          live.terminal.show(true);
-          live.terminal.sendText(code.trimEnd());
-        }
+        // every host prompt accepts English directly; examples are
+        // detected by the translation server's expectation checker
+        live.terminal.show(true);
+        live.terminal.sendText(unit.text + "\n");
         advance();
       } catch (e: any) {
         vscode.window.showErrorMessage(`EI REPL: ${e?.message ?? e}`);
@@ -434,11 +442,11 @@ export function activate(context: vscode.ExtensionContext) {
       const result = await doCompile(doc);
       if (!result) return;
       if (!result.testScript) { vscode.window.showInformationMessage("EI: this program states no examples to test."); return; }
-      const tmp = path.join(os.tmpdir(), `ei-vsc-test-${Date.now()}.${result.target === "python" ? "py" : "sh"}`);
+      const tmp = path.join(os.tmpdir(), `ei-vsc-test-${Date.now()}.${result.target === "python" ? "py" : result.target === "r" ? "R" : "sh"}`);
       fs.writeFileSync(tmp, result.testScript, { mode: 0o755 });
       const { execFile } = require("node:child_process") as typeof import("node:child_process");
       const stdout: string = await new Promise(resolve => {
-        execFile(result.target === "python" ? "python3" : "bash", [tmp], { timeout: 120000, maxBuffer: 8 * 1024 * 1024, cwd: path.dirname(doc.uri.fsPath) },
+        execFile(result.target === "python" ? "python3" : result.target === "r" ? "Rscript" : "bash", [tmp], { timeout: 120000, maxBuffer: 8 * 1024 * 1024, cwd: path.dirname(doc.uri.fsPath) },
           (_e, so) => resolve(String(so ?? "")));
       });
       try { fs.unlinkSync(tmp); } catch {}
@@ -478,7 +486,7 @@ export function activate(context: vscode.ExtensionContext) {
       fs.writeFileSync(tmp, instrument(result), { mode: 0o755 });
       const term = vscode.window.terminals.find(t => t.name === "ei debug") ?? vscode.window.createTerminal("ei debug");
       term.show(false);
-      term.sendText(`cd ${JSON.stringify(path.dirname(doc.uri.fsPath))} && ${result.target === "python" ? "python3" : "bash"} ${tmp}`);
+      term.sendText(`cd ${JSON.stringify(path.dirname(doc.uri.fsPath))} && ${result.target === "python" ? "python3" : result.target === "r" ? "Rscript" : "bash"} ${tmp}`);
     }),
 
     vscode.commands.registerCommand("ei.lockedBuild", async () => {
