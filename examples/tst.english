@@ -2,6 +2,7 @@ this is R
 
 if ggplot2 is not installed:
     install ggplot2
+
 load the ggplot2 library
 if dplyr is not installed:
     install dplyr
@@ -15,6 +16,9 @@ read the first file in csv_files into a data frame called df
 
 df
 
-make a barplot from df with date as x and amount as y save to p
+make a barplot from df with date as x and amount as y save to p, make the plot have different colors for each merchant
+
+take p and make the x axis vertical (you know 90 degrees rotations)
+take p and make the background white
 
 take p and write as a png in cwd

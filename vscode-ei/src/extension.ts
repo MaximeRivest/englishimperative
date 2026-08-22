@@ -6,7 +6,6 @@ import { acceptPinDependencies, clearCache, compile, pinStatement, replSetup, re
 import type { ReplSession } from "./core/compiler";
 import { instrument } from "./core/debug";
 import { shutdownWarmPi } from "./core/engine";
-import { BASH_REPL_HOST, PY_REPL_HOST, R_REPL_HOST } from "./core/replHost";
 import { briefFor } from "./core/briefs";
 import { loadCache, saveCache, stmtKey } from "./core/cache";
 import { parse } from "./core/parser";
@@ -193,66 +192,17 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   // ------------------------------------------------------------- REPL
-  // A real ei REPL: the terminal runs a host prompt (ei>) that accepts BOTH
-  // natural language and Python. English goes to a local translation server
-  // in this extension (pins, cache, warm engine), the generated code echoes
-  // as ⟶ lines, and state persists in the host process. Shift+Enter simply
-  // types the statement into that prompt. Like RStudio, but bilingual.
-  interface LiveRepl { session: ReplSession; terminal: vscode.Terminal; code: string; token: string; terminalDoc?: string }
+  // RStudio style with the REAL native consoles: IPython, R, or bash runs
+  // below, untouched. Shift+Enter translates the English statement here
+  // (pins, cache, warm engine) and types the generated code into that
+  // console, so what you see is exactly what the runtime receives.
+  interface LiveRepl { session: ReplSession; terminal: vscode.Terminal; code: string }
   const repls = new Map<string, LiveRepl>();       // eiFile -> live session
-  const replsByToken = new Map<string, LiveRepl>();
-  let replServer: import("node:http").Server | undefined;
-  let replPort = 0;
 
-  async function ensureReplServer(): Promise<number> {
-    if (replServer && replPort) return replPort;
-    const http = require("node:http") as typeof import("node:http");
-    // one translation for both wire formats: JSON (python host) and
-    // plain text (R and bash hosts, which speak through curl)
-    const serve = async (token: string, text: string) => {
-      const live = replsByToken.get(token);
-      if (!live) throw new Error("unknown session; restart the REPL");
-      const stmt = text.trim();
-      const kind = live.session.exampleTexts.includes(stmt) ? "example" : "statement";
-      const r = await replTranslate(live.terminalDoc ?? "", stmt, live.session, live.code, engineConfig(), kind);
-      live.code += r.code.endsWith("\n") ? r.code : r.code + "\n";
-      output.appendLine(`repl${r.pinned ? " (pinned)" : r.fromCache ? " (cached)" : ""}: ${stmt.split("\n")[0]}`);
-      return r;
-    };
-    replServer = http.createServer((req, res) => {
-      const isJson = req.url === "/translate";
-      const isRaw = req.url === "/translate-raw";
-      if (req.method !== "POST" || (!isJson && !isRaw)) { res.statusCode = 404; res.end(); return; }
-      let body = "";
-      req.on("data", d => body += d);
-      req.on("end", async () => {
-        if (isJson) {
-          const reply = (obj: unknown) => { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); };
-          try {
-            const { token, text } = JSON.parse(body);
-            const r = await serve(String(token), String(text));
-            reply({ code: r.code, kind: r.kind });
-          } catch (e: any) {
-            reply({ error: String(e?.message ?? e) });
-          }
-          return;
-        }
-        // raw protocol: token in a header, statement in the body;
-        // response line 1 = ok | ok-example | error, the rest = payload
-        res.setHeader("Content-Type", "text/plain");
-        try {
-          const r = await serve(String(req.headers["x-ei-token"] ?? ""), body);
-          res.end((r.kind === "example" ? "ok-example" : "ok") + "\n" + r.code);
-        } catch (e: any) {
-          res.end("error\n" + String(e?.message ?? e));
-        }
-      });
+  const onPath = (bin: string): boolean =>
+    (process.env.PATH ?? "").split(path.delimiter).some(d => {
+      try { return d && fs.existsSync(path.join(d, bin)); } catch { return false; }
     });
-    await new Promise<void>(resolve => replServer!.listen(0, "127.0.0.1", resolve));
-    replPort = (replServer.address() as any).port;
-    context.subscriptions.push({ dispose: () => { try { replServer?.close(); } catch {} } });
-    return replPort;
-  }
 
   async function getRepl(doc: vscode.TextDocument): Promise<LiveRepl> {
     const key = doc.uri.fsPath;
@@ -261,38 +211,24 @@ export function activate(context: vscode.ExtensionContext) {
     const session = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Window, title: "EI REPL" },
       progress => replSetup(key, doc.getText(), engineConfig(), m => progress.report({ message: m })));
-    const port = await ensureReplServer();
-    const token = Math.random().toString(36).slice(2);
-    // every target gets a bilingual ei> host: English or native code at
-    // one prompt, generated code echoed as ⟶ lines, state in one process
-    const host = session.target === "python"
-      ? { src: PY_REPL_HOST, ext: "py", shell: "python3" }
+    const console_ = session.target === "python"
+      ? { shellPath: onPath("ipython3") ? "ipython3" : onPath("ipython") ? "ipython" : "python3", shellArgs: [] as string[] }
       : session.target === "r"
-        ? { src: R_REPL_HOST, ext: "R", shell: "Rscript" }
-        : { src: BASH_REPL_HOST, ext: "sh", shell: "bash" };
-    const hostFile = path.join(os.tmpdir(), `ei-repl-host-${token}.${host.ext}`);
-    fs.writeFileSync(hostFile, host.src);
-    let preludeFile = "";
-    if (session.prelude.trim()) {
-      preludeFile = path.join(os.tmpdir(), `ei-repl-prelude-${token}.${host.ext}`);
-      fs.writeFileSync(preludeFile, session.prelude);
-    }
+        ? { shellPath: "R", shellArgs: ["--no-save", "--no-restore"] }
+        : { shellPath: "bash", shellArgs: [] as string[] };
     const terminal = vscode.window.createTerminal({
-      name: "ei repl",
-      cwd: path.dirname(key),
-      shellPath: host.shell,
-      shellArgs: [hostFile],
-      env: { EI_REPL_PORT: String(port), EI_REPL_TOKEN: token, EI_REPL_PRELUDE: preludeFile },
+      name: "ei repl", cwd: path.dirname(key), ...console_,
     });
-    const live: LiveRepl & { terminalDoc?: string } = { session, terminal, code: "", token, terminalDoc: key };
+    // the prelude (library loading) is typed in, visible like everything else
+    if (session.prelude.trim()) terminal.sendText(session.prelude.trimEnd());
+    const live: LiveRepl = { session, terminal, code: "" };
     repls.set(key, live);
-    replsByToken.set(token, live);
     terminal.show(true);
     return live;
   }
 
   context.subscriptions.push(vscode.window.onDidCloseTerminal(t => {
-    for (const [key, live] of repls) if (live.terminal === t) { repls.delete(key); replsByToken.delete(live.token); }
+    for (const [key, live] of repls) if (live.terminal === t) repls.delete(key);
   }));
 
   let skipNextSaveCompile = false;
@@ -419,10 +355,16 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage("EI: that line describes the program; skipped.");
           advance(); return;
         }
-        // every host prompt accepts English directly; examples are
-        // detected by the translation server's expectation checker
+        // translate here; type the generated code into the native console
+        const stmt = unit.text.trim();
+        const kind = live.session.exampleTexts.includes(stmt) ? "example" : "statement";
+        const { code, fromCache, pinned } = await vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Window, title: "EI translate" },
+          () => replTranslate(doc.uri.fsPath, stmt, live.session, live.code, engineConfig(), kind));
+        output.appendLine(`repl${pinned ? " (pinned)" : fromCache ? " (cached)" : ""}: ${stmt.split("\n")[0]}`);
+        live.code += code.endsWith("\n") ? code : code + "\n";
         live.terminal.show(true);
-        live.terminal.sendText(unit.text + "\n");
+        live.terminal.sendText(code.trimEnd() + "\n");
         advance();
       } catch (e: any) {
         vscode.window.showErrorMessage(`EI REPL: ${e?.message ?? e}`);

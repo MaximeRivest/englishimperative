@@ -163,7 +163,7 @@
   "scripts": {
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
-    "test": "npm run build && node test/semantic.mjs && node test/run.mjs && node test/features.mjs && node test/language.mjs && node test/repl.mjs && node test/replhost.mjs && node test/replhost-rbash.mjs && node test/r.mjs",
+    "test": "npm run build && node test/semantic.mjs && node test/run.mjs && node test/features.mjs && node test/language.mjs && node test/repl.mjs && node test/r.mjs",
     "test:pi": "npm run build && EI_TEST_ENGINE=pi EI_TEST_PI_MODEL=homelab/qwen/qwen3.8-27b node test/run.mjs"
   },
   "devDependencies": {

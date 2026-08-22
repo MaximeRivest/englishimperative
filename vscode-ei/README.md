@@ -47,14 +47,13 @@ runnable. The model only translates; execution produces all results.
   statement at a time in the terminal: Enter steps, `c` continues, `v` shows
   variables, `p NAME` prints one, `q` quits.
 - **REPL (Shift+Enter)**: like RStudio, for Python, R, and bash alike.
-  Shift+Enter sends the statement under the cursor to a live `ei>` prompt
-  below. The prompt itself is bilingual: type English or native code
-  directly into it. English translates (pins and cache answer instantly,
-  only new sentences reach the model), the generated code echoes as `⟶`
-  lines, and state persists in one real process per file. A `,` prefix
-  forces translation; incomplete R continues on `...` like R's own `+`.
-  The cursor advances to the next statement. `EI: Restart REPL Session`
-  starts fresh.
+  The pane below is the REAL native console — IPython, the R console, or
+  plain bash — untouched. Shift+Enter translates the English statement
+  (pins and cache answer instantly, only new sentences reach the model)
+  and types the generated code into that console, so what you see typed
+  is exactly what the runtime receives. State persists in the native
+  process; native code you type yourself works as always. The cursor
+  advances to the next statement. `EI: Restart REPL Session` starts fresh.
 - **Any human language**: the file extension may name the source language —
   full names (`rapport.francais`, `bericht.deutsch`), ISO 639 codes
   (`rapport.fr`, `informe.spa`), combined (`rapport.fr.ei`), or plain `.ei`
